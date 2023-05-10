@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
-add_matrices2D = __import__('5-across_the_planes').add_matrices2D
+cat_arrays = __import__('6-howdy_partner').cat_arrays
 
-mat1 = [[1, 2], [3, 4]]
-mat2 = [[5, 6], [7, 8]]
-print(add_matrices2D(mat1, mat2))
-print(mat1)
-print(mat2)
-print(add_matrices2D(mat1, [[1, 2, 3], [4, 5, 6]]))
+arr1 = [1, 2, 3, 4, 5]
+arr2 = [6, 7, 8]
+print(cat_arrays(arr1, arr2))
+print(arr1)
+print(arr2)
