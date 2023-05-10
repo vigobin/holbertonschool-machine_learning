@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-add_arrays = __import__('4-line_up').add_arrays
+add_matrices2D = __import__('5-across_the_planes').add_matrices2D
 
-arr1 = [1, 2, 3, 4]
-arr2 = [5, 6, 7, 8]
-print(add_arrays(arr1, arr2))
-print(arr1)
-print(arr2)
-print(add_arrays(arr1, [1, 2, 3]))
+mat1 = [[1, 2], [3, 4]]
+mat2 = [[5, 6], [7, 8]]
+print(add_matrices2D(mat1, mat2))
+print(mat1)
+print(mat2)
+print(add_matrices2D(mat1, [[1, 2, 3], [4, 5, 6]]))
