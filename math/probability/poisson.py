@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Represents a poisson distribution"""
+import math
 
 
 class Poisson:
@@ -20,3 +21,15 @@ class Poisson:
             else:
                 lambtha = float(sum(data) / len(data))
                 self.lambtha = lambtha
+
+    def pmf(self, k):
+        """Calculates the value of the PMF for a given number of “successes”"""
+        if type(k) is not int:
+            k = int(k)
+        if k < 0:
+            return 0
+        factorial = 1
+        for i in range(1, k + 1):
+            factorial *= self.lambtha / i
+        pmf = factorial * math.exp(-self.lambtha)
+        return pmf
