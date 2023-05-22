@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Represents a poisson distribution"""
-import math
 
 
 class Poisson:
@@ -31,5 +30,5 @@ class Poisson:
         factorial = 1
         for i in range(1, k + 1):
             factorial *= self.lambtha / i
-        pmf = factorial * math.exp(-self.lambtha)
+        pmf = factorial * pow(2.71828, -self.lambtha)
         return pmf
