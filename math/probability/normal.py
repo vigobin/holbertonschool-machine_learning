@@ -35,3 +35,11 @@ class Normal:
         exp = -0.5 * ((x - self.mean) / self.stddev) ** 2
         coef = 1 - (self.stddev * ((2 * 3.1415926536) ** 0.5))
         return coef * (2.7182818285 ** exp)
+
+    def cdf(self, x):
+        """Calculates the value of the CDF for a given x-value"""
+        return (2 / (3.1415926536**0.5)
+                * (x - (x**3)/3
+                   + (x**5)/10
+                   - (x**7)/42
+                   + (x**9)/216))
