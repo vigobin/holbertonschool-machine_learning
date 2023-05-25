@@ -30,7 +30,7 @@ class Poisson:
         factorial = 1
         for i in range(1, k + 1):
             factorial *= self.lambtha / i
-        pmf = factorial * pow(2.71828, -self.lambtha)
+        pmf = factorial * pow(2.7182818285, -self.lambtha)
         return pmf
 
     def cdf(self, k):
