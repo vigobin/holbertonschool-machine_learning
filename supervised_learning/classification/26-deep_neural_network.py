@@ -147,13 +147,13 @@ class DeepNeuralNetwork:
             filename += '.pk1'
         with open(filename, 'wb') as f:
             pickle.dump(self, f)
-            f.close
+            f.close()
 
     def load(filename):
         """Loads a pickled DeepNeuralNetwork object"""
         try:
             with open(filename, 'rb') as f:
                 obj = pickle.load(f)
-                return obj
+            return obj
         except FileNotFoundError:
             return None
