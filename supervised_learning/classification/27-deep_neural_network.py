@@ -53,7 +53,10 @@ class DeepNeuralNetwork:
             b = self.__weights['b{}'.format(i)]
             A_prev = self.__cache['A{}'.format(i - 1)]
             Z = np.matmul(W, A_prev) + b
-            A = 1 / (1 + np.exp(-Z))
+            if i == self.__L:
+                A = np.exp(Z) / np.sum(np.exp(Z), axis=0)
+            else:
+                A = 1 / (1 + np.exp(-Z))
             self.__cache['A{}'.format(i)] = A
 
         return self.__cache['A{}'.format(self.__L)], self.__cache
@@ -61,16 +64,17 @@ class DeepNeuralNetwork:
     def cost(self, Y, A):
         """Calculates the cost of the model using logistic regression"""
         m = Y.shape[1]
-        cost = -(1 / m) * np.sum(Y * np.log(A) + (1 - Y) * np.log(
-            1.0000001 - A))
+        cost = -(1 / m) * np.sum(Y * np.log(A))
         return cost
 
     def evaluate(self, X, Y):
         """Evaluates the neural network’s predictions"""
         A, cache = self.forward_prop(X)
-        prediction = np.where(A >= 0.5, 1, 0)
+        prediction = np.argmax(A, axis=0)
+        Y_true = np.argmax(Y, axis=0)
+        accuracy = np.sum(prediction == Y_true) / Y.shape[1]
         cost = self.cost(Y, A)
-        return prediction, cost
+        return prediction, accuracy, cost
 
     def gradient_descent(self, Y, cache, alpha=0.05):
         """Calculates one pass of gradient descent on the neural network"""
@@ -143,8 +147,8 @@ class DeepNeuralNetwork:
 
     def save(self, filename):
         """Saves the instance object to a file in pickle format"""
-        if not filename.endswith('.pk1'):
-            filename += '.pk1'
+        if not filename.endswith('.pkl'):
+            filename = filename[:] + ".pkl"
         with open(filename, 'wb') as f:
             pickle.dump(self, f)
         f.close()
