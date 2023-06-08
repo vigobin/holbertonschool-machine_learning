@@ -81,9 +81,9 @@ class DeepNeuralNetwork:
             W_key = 'W' + str(i)
             b_key = 'b' + str(i)
 
-            dW = (1/m) * np.dot(dZ, A_prev.T)
+            dW = (1/m) * np.matmul(dZ, A_prev.T)
             db = (1/m) * np.sum(dZ, axis=1, keepdims=True)
-            dA_prev = np.dot(self.__weights[W_key].T, dZ)
+            dA_prev = np.matmul(self.__weights[W_key].T, dZ)
 
             self.__weights[W_key] -= alpha * dW
             self.__weights[b_key] -= alpha * db
