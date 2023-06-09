@@ -94,7 +94,8 @@ class DeepNeuralNetwork:
             self.__weights[W_key] -= alpha * dW
             self.__weights[b_key] -= alpha * db
 
-            dZ = dA_prev * (A_prev * (1 - A_prev))
+            if i != 1:
+                dZ = dA_prev * (A_prev * (1 - A_prev))
 
     def train(self, X, Y, iterations=5000, alpha=0.05, verbose=True,
               graph=True, step=100):
@@ -142,7 +143,6 @@ class DeepNeuralNetwork:
             plt.show()
 
         # Return evaluation of the training data
-
         return self.evaluate(X, Y)
 
     def save(self, filename):
