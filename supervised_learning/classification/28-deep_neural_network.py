@@ -10,7 +10,7 @@ class DeepNeuralNetwork:
     """defines a deep neural network with one hidden layer
     performing binary classification"""
 
-    def __init__(self, nx, layers):
+    def __init__(self, nx, layers, activation='sig'):
         """Class constructor"""
         if type(nx) is not int:
             raise TypeError('nx must be an integer')
@@ -22,6 +22,10 @@ class DeepNeuralNetwork:
         self.__L = len(layers)
         self.__cache = {}
         self.__weights = {}
+        self.__activation = activation
+
+        if activation not in ['sig', 'tanh']:
+            raise ValueError("activation must be 'sig' or 'tanh'")
 
         previous_node = nx
         for i, layer in enumerate(layers, 1):
@@ -31,6 +35,10 @@ class DeepNeuralNetwork:
             self.__weights['W{}'.format(i)] = np.random.randn(
                 layer, previous_node) * np.sqrt(2 / previous_node)
             previous_node = layer
+
+    @property
+    def activation(self):
+        return self.__activation
 
     @property
     def L(self):
@@ -53,7 +61,12 @@ class DeepNeuralNetwork:
             b = self.__weights['b{}'.format(i)]
             A_prev = self.__cache['A{}'.format(i - 1)]
             Z = np.matmul(W, A_prev) + b
-            A = 1 / (1 + np.exp(-Z))
+
+            if self.__activation == 'sig':
+                A = 1 / (1 + np.exp(-Z))
+            elif self.__activation == 'tanh':
+                A = np.tanh(Z)
+
             self.__cache['A{}'.format(i)] = A
 
         return self.__cache['A{}'.format(self.__L)], self.__cache
@@ -61,16 +74,15 @@ class DeepNeuralNetwork:
     def cost(self, Y, A):
         """Calculates the cost of the model using logistic regression"""
         m = Y.shape[1]
-        cost = -(1 / m) * np.sum(Y * np.log(A) + (1 - Y) * np.log(
-            1.0000001 - A))
+        cost = -(1 / m) * np.sum(Y * np.log(A))
         return cost
 
     def evaluate(self, X, Y):
         """Evaluates the neural network’s predictions"""
         A, cache = self.forward_prop(X)
-        prediction = np.where(A >= 0.5, 1, 0)
         cost = self.cost(Y, A)
-        return prediction, cost
+        prediction = np.where(A >= 0.5, 1, 0)
+        return (prediction, cost)
 
     def gradient_descent(self, Y, cache, alpha=0.05):
         """Calculates one pass of gradient descent on the neural network"""
@@ -87,10 +99,13 @@ class DeepNeuralNetwork:
             db = (1/m) * np.sum(dZ, axis=1, keepdims=True)
             dA_prev = np.matmul(self.__weights[W_key].T, dZ)
 
+            if self.__activation == 'sig':
+                dZ = dA_prev * (A_prev * (1 - A_prev))
+            elif self.__activation == 'tanh':
+                dZ = dA_prev * (1 - np.power(A_prev, 2))
+
             self.__weights[W_key] -= alpha * dW
             self.__weights[b_key] -= alpha * db
-
-            dZ = dA_prev * (A_prev * (1 - A_prev))
 
     def train(self, X, Y, iterations=5000, alpha=0.05, verbose=True,
               graph=True, step=100):
@@ -138,12 +153,11 @@ class DeepNeuralNetwork:
             plt.show()
 
         # Return evaluation of the training data
-
         return self.evaluate(X, Y)
 
     def save(self, filename):
         """Saves the instance object to a file in pickle format"""
-        if not filename.endswith('.pk1'):
+        if not filename.endswith('.pkl'):
             filename = filename[:] + ".pkl"
         with open(filename, 'wb') as f:
             pickle.dump(self, f)
