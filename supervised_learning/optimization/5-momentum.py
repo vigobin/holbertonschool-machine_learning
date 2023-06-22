@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Momentum function"""
 
-import tensorflow as tf
-
 
 def update_variables_momentum(alpha, beta1, var, grad, v):
     """updates a variable using the gradient descent
