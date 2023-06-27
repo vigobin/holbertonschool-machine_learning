@@ -15,8 +15,7 @@ def specificity(confusion):
         true_negatives = np.sum(np.delete(np.delete(
             confusion, i, axis=0), i, axis=1))
         # Calculate the sum of true negatives and false positives for class i
-        negatives = np.sum(np.delete(confusion[i, :], i))
+        negatives = np.sum(confusion) - np.sum(confusion[i, :])
         # Calculate the specificity for class i
         specificity_values[i] = true_negatives / negatives
-
     return specificity_values
