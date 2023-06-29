@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
 """Create a Layer with Dropout"""
 
-import numpy as np
+import tensorflow as tf
 
 
 def dropout_create_layer(prev, n, activation, keep_prob):
     """Creates a layer of a neural network using dropout"""
-    W = np.random.randn(n, prev.shape[0]) * np.sqrt(2 / prev.shape[0])
-    b = np.zeros((n, 1))
+    initializer = tf.initializers.GlorotUniform()
+    W = tf.Variable(initializer(shape=(n, prev.shape[1])))
+    b = tf.Variable(tf.zeros((n,)))
 
     if activation == 'tanh':
-        activation_fn = np.tanh
+        activation_fn = tf.nn.tanh
     elif activation == 'softmax':
-        activation_fn = np.softmax
-    layer = {
-        'W': W,
-        'b': b,
-        'activation': activation_fn,
-        'keep_prob': keep_prob
-    }
+        activation_fn = tf.nn.softmax
 
-    return layer
+    z = tf.matmul(W, prev) + b
+    a = activation_fn(z)
+    dropout_mask = tf.cast(tf.random.uniform(
+        shape=tf.shape(a)) < keep_prob, dtype=tf.float32)
+    a_dropout = tf.multiply(a, dropout_mask) / keep_prob
+
+    return a_dropout
