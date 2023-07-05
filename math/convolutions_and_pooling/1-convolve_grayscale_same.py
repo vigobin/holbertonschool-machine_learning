@@ -7,7 +7,7 @@ import numpy as np
 def convolve_grayscale_same(images, kernel):
     """that performs a same convolution on grayscale images"""
     m, h, w = images.shape
-    kh, kw = kernel.shape
+    kh, kw = kernel.shape[:2]
 
     # Calculate padding sizes
     ph = (kh - 1) // 2
