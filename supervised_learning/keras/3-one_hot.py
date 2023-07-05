@@ -12,4 +12,4 @@ def one_hot(labels, classes=None):
     one_hot_matrix = np.zeros((len(labels), classes))
     one_hot_matrix[np.arange(len(labels)), labels] = 1
 
-    return one_hot_matrix   
+    return one_hot_matrix
