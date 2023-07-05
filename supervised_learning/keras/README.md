@@ -1,4 +1,4 @@
-# Project: Regularization
+# Project: Keras
 
 ## Description
 This project involves learning about the following concepts:
