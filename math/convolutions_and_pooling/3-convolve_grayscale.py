@@ -12,8 +12,8 @@ def convolve_grayscale(images, kernel, padding='same', stride=(1, 1)):
 
     # Calculate the output shape based on the padding and stride
     if padding == 'same':
-        pad_h = max((h - 1) * sh + kh - h, 0)
-        pad_w = max((w - 1) * sw + kw - w, 0)
+        pad_h = int(np.ceil(((h - 1) * sh + kh - h) / 2))
+        pad_w = int(np.ceil(((w - 1) * sw + kw - w) / 2))
     elif padding == 'valid':
         pad_h, pad_w = 0, 0
     else:
