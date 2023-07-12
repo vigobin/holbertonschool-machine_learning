@@ -24,37 +24,30 @@ def conv_forward(A_prev, W, b, activation, padding="same", stride=(1, 1)):
     m, h_prev, w_prev, c_prev = A_prev.shape
     kh, kw, c_prev, c_new = W.shape
     sh, sw = stride
-
-    if padding == "same":
-        ph = max((h_prev - 1) * sh - h_prev + kh, 0)
-        pw = max((w_prev - 1) * sw - w_prev + kw, 0)
-        pad_top = ph // 2
-        pad_bottom = ph - pad_top
-        pad_left = pw // 2
-        pad_right = pw - pad_left
-        A_prev_pad = np.pad(A_prev, ((0, 0), (
-            pad_top, pad_bottom), (
-            pad_left, pad_right), (0, 0)), mode='constant')
-    elif padding == "valid":
-        A_prev_pad = A_prev
-
-    h_out = (h_prev - kh + 2 * pad_top) // sh + 1
-    w_out = (w_prev - kw + 2 * pad_left) // sw + 1
-
-    A = np.zeros((m, h_out, w_out, c_new))
-
-    for i in range(h_out):
-        for j in range(w_out):
-            h_start = i * sh
-            h_end = h_start + kh
-            w_start = j * sw
-            w_end = w_start + kw
-
-            A[:, i, j, :] = np.sum(
-                A_prev_pad[:, h_start:h_end, w_start:w_end, :,
-                           np.newaxis] * W, axis=(1, 2, 3))
-
-    Z = A + b
-    A_out = activation(Z)
-
-    return A_out
+    if padding is 'valid':
+        ph = 0
+        pw = 0
+    elif padding is 'same':
+        ph = ((((h_prev - 1) * sh) + kh - h_prev) // 2)
+        pw = ((((w_prev - 1) * sw) + kw - w_prev) // 2)
+    else:
+        return
+    images = np.pad(A_prev, ((0, 0), (ph, ph), (pw, pw), (0, 0)),
+                    'constant', constant_values=0)
+    ch = ((h_prev + (2 * ph) - kh) // sh) + 1
+    cw = ((w_prev + (2 * pw) - kw) // sw) + 1
+    convoluted = np.zeros((m, ch, cw, c_new))
+    for index in range(c_new):
+        kernel_index = W[:, :, :, index]
+        i = 0
+        for h in range(0, (h_prev + (2 * ph) - kh + 1), sh):
+            j = 0
+            for w in range(0, (w_prev + (2 * pw) - kw + 1), sw):
+                output = np.sum(
+                    images[:, h:h + kh, w:w + kw, :] * kernel_index,
+                    axis=1).sum(axis=1).sum(axis=1)
+                output += b[0, 0, 0, index]
+                convoluted[:, i, j, index] = activation(output)
+                j += 1
+            i += 1
+    return convoluted
