@@ -25,44 +25,33 @@ def conv_backward(dZ, A_prev, W, b, padding="same", stride=(1, 1)):
     """
 
     m, h_new, w_new, c_new = dZ.shape
-    kh, kw, c_prev, _ = W.shape
+    m, h_prev, w_prev, c_prev = A_prev.shape
+    kh, kw, c_prev, c_new = W.shape
     sh, sw = stride
-
-    dA_prev = np.zeros(A_prev.shape)
-    dW = np.zeros(W.shape)
     db = np.sum(dZ, axis=(0, 1, 2), keepdims=True)
-
-    if padding == "same":
-        ph = max((A_prev.shape[1] - 1) * sh - A_prev.shape[1] + kh, 0)
-        pw = max((A_prev.shape[2] - 1) * sw - A_prev.shape[2] + kw, 0)
-        pad_top = ph // 2
-        pad_bottom = ph - pad_top
-        pad_left = pw // 2
-        pad_right = pw - pad_left
-        A_prev_pad = np.pad(A_prev, ((0, 0), (pad_top, pad_bottom), (
-            pad_left, pad_right), (0, 0)), mode='constant')
-        dA_prev_pad = np.pad(dA_prev, ((0, 0), (pad_top, pad_bottom), (
-            pad_left, pad_right), (0, 0)), mode='constant')
-    elif padding == "valid":
-        A_prev_pad = A_prev
-        dA_prev_pad = dA_prev
-
-    for i in range(h_new):
-        for j in range(w_new):
-            h_start = i * sh
-            h_end = h_start + kh
-            w_start = j * sw
-            w_end = w_start + kw
-
-            dA_prev_pad[:, h_start:h_end, w_start:w_end, :] += np.sum(
-                W * dZ[:, i:i+1, j:j+1, :], axis=-1)
-            dW += np.sum(A_prev_pad[
-                :, h_start:h_end, w_start:w_end, :, np.newaxis] * dZ[
-                    :, i:i+1, j:j+1, np.newaxis, :], axis=0)
-
-    if padding == "same":
-        dA_prev = dA_prev_pad[:, pad_top:-pad_bottom, pad_left:-pad_right, :]
-    elif padding == "valid":
-        dA_prev = dA_prev_pad
-
+    if padding is 'valid':
+        ph = 0
+        pw = 0
+    elif padding is 'same':
+        ph = ((((h_prev - 1) * sh) + kh - h_prev) // 2) + 1
+        pw = ((((w_prev - 1) * sw) + kw - w_prev) // 2) + 1
+    else:
+        return
+    padded = np.pad(A_prev, ((0, 0), (ph, ph), (pw, pw), (0, 0)),
+                    'constant', constant_values=0)
+    dA_prev = np.zeros((m, h_prev + (2 * ph), w_prev + (2 * pw), c_prev))
+    dW = np.zeros((kh, kw, c_prev, c_new))
+    for ex in range(m):
+        for kernel_index in range(c_new):
+            for h in range(h_new):
+                for w in range(w_new):
+                    i = h * sh
+                    j = w * sw
+                    dA_prev[ex, i: i + kh, j: j + kw, :] += (
+                        dZ[ex, h, w, kernel_index] * W[:, :, :, kernel_index])
+                    dW[:, :, :, kernel_index] += (
+                        padded[ex, i: i + kh, j: j + kw, :] *
+                        dZ[ex, h, w, kernel_index])
+    if padding is 'same':
+        dA_prev = dA_prev[:, ph:-ph, pw:-pw, :]
     return dA_prev, dW, db
