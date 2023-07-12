@@ -20,53 +20,45 @@ def lenet5(x, y):
         - tensor for the accuracy of the network
     """
 
-    # Convolutional layer 1
-    conv1 = tf.layers.Conv2D(
-        filters=6, kernel_size=(
-         5, 5), padding='same',
-        activation=tf.nn.relu, kernel_initializer=tf.contrib.layers.
-        variance_scaling_initializer())(x)
-    # Max pooling layer 1
-    pool1 = tf.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(conv1)
-
-    # Convolutional layer 2
-    conv2 = tf.layers.Conv2D(
-        filters=16, kernel_size=(
-         5, 5), padding='valid', activation=tf.nn.relu,
-        kernel_initializer=tf.contrib.layers.variance_scaling_initializer(
-
-        ))(pool1)
-    # Max pooling layer 2
-    pool2 = tf.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(conv2)
-
-    # Flatten the output of the previous layer
-    flatten = tf.layers.Flatten()(pool2)
-
-    # Fully connected layer 1
-    fc1 = tf.layers.Dense(units=120, activation=tf.nn.relu,
-                          kernel_initializer=tf.contrib.layers.
-                          variance_scaling_initializer())(flatten)
-
-    # Fully connected layer 2
-    fc2 = tf.layers.Dense(units=84, activation=tf.nn.relu,
-                          kernel_initializer=tf.contrib.layers.
-                          variance_scaling_initializer())(fc1)
-
-    # Output layer
-    output = tf.layers.Dense(units=10, activation=tf.nn.softmax,
-                             kernel_initializer=tf.contrib.layers.
-                             variance_scaling_initializer())(fc2)
-
-    # Loss function
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
-        labels=y, logits=output))
-
-    # Accuracy
-    correct_predictions = tf.equal(tf.argmax(output, 1), tf.argmax(y, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
-
-    # Training operation
-    optimizer = tf.train.AdamOptimizer()
-    train_op = optimizer.minimize(loss)
-
-    return output, train_op, loss, accuracy
+    weights_initializer = tf.contrib.layers.variance_scaling_initializer()
+    C1 = tf.layers.Conv2D(filters=6,
+                          kernel_size=(5, 5),
+                          padding='same',
+                          activation=tf.nn.relu,
+                          kernel_initializer=weights_initializer)
+    output_1 = C1(x)
+    P2 = tf.layers.MaxPooling2D(pool_size=(2, 2),
+                                strides=(2, 2))
+    output_2 = P2(output_1)
+    C3 = tf.layers.Conv2D(filters=16,
+                          kernel_size=(5, 5),
+                          padding='valid',
+                          activation=tf.nn.relu,
+                          kernel_initializer=weights_initializer)
+    output_3 = C3(output_2)
+    P4 = tf.layers.MaxPooling2D(pool_size=(2, 2),
+                                strides=(2, 2))
+    output_4 = P4(output_3)
+    output_42 = tf.layers.Flatten()(output_4)
+    F5 = tf.layers.Dense(
+        120,
+        activation=tf.nn.relu,
+        kernel_initializer=weights_initializer)
+    output_5 = F5(output_42)
+    F6 = tf.layers.Dense(
+        84,
+        activation=tf.nn.relu,
+        kernel_initializer=weights_initializer)
+    output_6 = F6(output_5)
+    F7 = tf.layers.Dense(
+        10,
+        kernel_initializer=weights_initializer)
+    output_7 = F7(output_6)
+    softmax = tf.nn.softmax(output_7)
+    loss = tf.losses.softmax_cross_entropy(y, logits=output_7)
+    op = tf.train.AdamOptimizer().minimize(loss)
+    y_pred = tf.math.argmax(output_7, axis=1)
+    y_out = tf.math.argmax(y, axis=1)
+    equality = tf.math.equal(y_pred, y_out)
+    accuracy = tf.reduce_mean(tf.cast(equality, 'float'))
+    return softmax, op, loss, accuracy
