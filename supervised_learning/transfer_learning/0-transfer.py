@@ -1,76 +1,72 @@
 #!/usr/bin/env python3
-"""Transfer Knowledge"""
-
+"""
+Script to train a convolutional neural network to classify the CIFAR 10 dataset
+"""
 import tensorflow.keras as K
-import numpy as np
 
 
 def preprocess_data(X, Y):
-    # Scale the pixel values to [0, 1]
-    X_p = X.astype('float32') / 255.0
+    """
+    Pre-processes the data for the model
 
-    # One-hot encode the labels
-    Y_p = K.utils.to_categorical(Y, num_classes=10)
+    parameters:
+        X [numpy.ndarray of shape (m, 32, 32, 3)]:
+            contains the CIFAR 10 data where m is the number of data points
+        Y [numpy.ndarray of shape (m,)]:
+            contains the CIFAR 10 labels for X
 
-    return X_p, Y_p
-
-
-def densenet121():
-    # Build the DenseNet-121 architecture
-    input_shape = (224, 224, 3)
-    base_model = K.applications.DenseNet121(
-        include_top=False, weights='imagenet', input_shape=input_shape)
-
-    # Freeze all layers in the base model
-    for layer in base_model.layers:
-        layer.trainable = False
-
-    X = base_model.output
-    X = K.layers.GlobalAveragePooling2D()(X)
-    X = K.layers.Dense(120, activation='relu')(X)
-    X = K.layers.Dense(84, activation='relu')(X)
-    output = K.layers.Dense(10, activation='softmax')(X)
-
-    return output
+    returns:
+        X_p: a numpy.ndarray containing the preprocessed X
+        Y_p: a numpy.ndarray containing the preprocessed Y
+    """
+    # print(X.shape)
+    # print(Y.shape)
+    # scale pixels between 0 and 1
+    # each channel normalized with respect to ImageNet data
+    X_p = K.applications.densenet.preprocess_input(X,
+                                                   data_format="channels_last")
+    Y_p = K.utils.to_categorical(Y, 10)
+    return (X_p, Y_p)
 
 
-def main():
-    # Load the CIFAR 10 data
+if __name__ == '__main__':
+    """
+    Trains a convolutional neural network to classify CIFAR 10 dataset
+    Saves model to cifar10.h5
+    """
     (X_train, Y_train), (X_test, Y_test) = K.datasets.cifar10.load_data()
-
-    # Preprocess the data
     X_train, Y_train = preprocess_data(X_train, Y_train)
     X_test, Y_test = preprocess_data(X_test, Y_test)
 
-    # Resize the images to match DenseNet-121 input shape (224x224)
-    X_train_resized = np.array([K.backend.resize_images(
-        img, (224, 224)) for img in X_train])
-    X_test_resized = np.array([K.backend.resize_images(
-        img, (224, 224)) for img in X_test])
+    inputs = K.Input(shape=(32, 32, 3))
+    inputs_resized = K.layers.Lambda(
+        lambda x: K.backend.resize_images(x,
+                                          height_factor=(224 // 32),
+                                          width_factor=(224 // 32),
+                                          data_format="channels_last"))(inputs)
 
-    # Create the input layer
-    input_shape = (224, 224, 3)
-    X_input = K.Input(shape=input_shape)
+    DenseNet121 = K.applications.DenseNet121(include_top=False,
+                                             weights='imagenet',
+                                             input_shape=(224, 224, 3))
+    activation = K.activations.relu
 
-    # Create the DenseNet-121 model
-    output = densenet121()
+    X = DenseNet121(inputs_resized, training=False)
+    X = K.layers.Flatten()(X)
+    X = K.layers.Dense(500, activation=activation)(X)
+    X = K.layers.Dropout(0.2)(X)
+    outputs = K.layers.Dense(10, activation='softmax')(X)
 
-    # Create the model
-    model = K.Model(inputs=X_input, outputs=output)
+    model = K.Model(inputs=inputs, outputs=outputs)
 
-    # Compile the model
-    model.compile(
-        optimizer='adam', loss='categorical_crossentropy',
-        metrics=['accuracy'])
+    DenseNet121.trainable = False
 
-    # Train the model
-    model.fit(
-        X_train_resized, Y_train, batch_size=32, epochs=10,
-        validation_data=(X_test_resized, Y_test))
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=K.optimizers.Adam(),
+                  metrics=['accuracy'])
 
-    # Save the model
+    history = model.fit(x=X_train, y=Y_train,
+                        validation_data=(X_test, Y_test),
+                        batch_size=300,
+                        epochs=5, verbose=True)
+
     model.save('cifar10.h5')
-
-
-if __name__ == "__main__":
-    main()
