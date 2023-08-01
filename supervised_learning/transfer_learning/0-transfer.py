@@ -45,20 +45,17 @@ if __name__ == '__main__':
                                           width_factor=(224 // 32),
                                           data_format="channels_last"))(inputs)
 
-    DenseNet121 = K.applications.DenseNet121(include_top=False,
-                                             weights='imagenet',
-                                             input_shape=(224, 224, 3))
-    activation = K.activations.relu
+    EfficientNetV2B0 = K.applications.EfficientNetV2B0(
+        include_top=False, weights='imagenet',
+        input_shape=(224, 224, 3))
 
-    X = DenseNet121(inputs_resized, training=False)
+    X = EfficientNetV2B0(inputs_resized, training=False)
     X = K.layers.Flatten()(X)
-    X = K.layers.Dense(500, activation=activation)(X)
-    X = K.layers.Dropout(0.2)(X)
     outputs = K.layers.Dense(10, activation='softmax')(X)
 
     model = K.Model(inputs=inputs, outputs=outputs)
 
-    DenseNet121.trainable = False
+    EfficientNetV2B0.trainable = False
 
     model.compile(loss='categorical_crossentropy',
                   optimizer=K.optimizers.Adam(),
@@ -67,6 +64,6 @@ if __name__ == '__main__':
     history = model.fit(x=X_train, y=Y_train,
                         validation_data=(X_test, Y_test),
                         batch_size=300,
-                        epochs=5, verbose=True)
+                        epochs=4)
 
     model.save('cifar10.h5')
