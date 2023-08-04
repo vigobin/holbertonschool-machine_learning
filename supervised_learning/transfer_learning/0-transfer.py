@@ -7,22 +7,22 @@ import tensorflow.keras as K
 
 def preprocess_data(X, Y):
     """
-    Pre-processes the data for the model
+    Script must save your trained model in the current working
+    directory as cifar10.h5
+    Saved model should be compiled
+    Saved model should have a validation accuracy of 87% or higher
+    Script should not run when the file is imported
 
-    parameters:
-        X [numpy.ndarray of shape (m, 32, 32, 3)]:
-            contains the CIFAR 10 data where m is the number of data points
-        Y [numpy.ndarray of shape (m,)]:
-            contains the CIFAR 10 labels for X
+    Pre-processes the data using:
 
-    returns:
-        X_p: a numpy.ndarray containing the preprocessed X
-        Y_p: a numpy.ndarray containing the preprocessed Y
+    X is a numpy.ndarray of shape (m, 32, 32, 3) containing the CIFAR 10 data,
+    where m is the number of data points
+    Y is a numpy.ndarray of shape (m,) containing the CIFAR 10 labels for X
+    Returns: X_p, Y_p
+        X_p is a numpy.ndarray containing the preprocessed X
+        Y_p is a numpy.ndarray containing the preprocessed Y
+
     """
-    # print(X.shape)
-    # print(Y.shape)
-    # scale pixels between 0 and 1
-    # each channel normalized with respect to ImageNet data
     X_p = K.applications.efficientnet_v2.preprocess_input(
         X, data_format="channels_last")
     Y_p = K.utils.to_categorical(Y, 10)
@@ -64,6 +64,6 @@ if __name__ == '__main__':
     history = model.fit(x=X_train, y=Y_train,
                         validation_data=(X_test, Y_test),
                         batch_size=600,
-                        epochs=6)
+                        epochs=7)
 
     model.save('cifar10.h5')
