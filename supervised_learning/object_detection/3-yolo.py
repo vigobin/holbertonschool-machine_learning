@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-""" Filter Boxes """
+"""Non-max Suppression"""
 
 import numpy as np
+import tensorflow as tf
 from tensorflow.keras.models import load_model
 
 
@@ -133,3 +134,36 @@ class Yolo:
             classes.append(filtered_classes)
 
         return boxes_filtered, scores, classes
+
+    def non_max_suppression(self, filtered_boxes, box_classes, box_scores):
+        """
+        filtered_boxes: a numpy.ndarray of shape (?, 4) containing all of the
+            filtered bounding boxes:
+        box_classes: a numpy.ndarray of shape (?,) containing the class number
+            for the class that filtered_boxes predicts, respectively
+        box_scores: a numpy.ndarray of shape (?) containing the box scores for
+            each box in filtered_boxes, respectively
+        Returns a tuple of
+            (box_predictions, predicted_box_classes, predicted_box_scores):
+        box_predictions: a numpy.ndarray of shape (?, 4) containing all
+            of the predicted bounding boxes ordered by class and box score
+        predicted_box_classes: a numpy.ndarray of shape (?,) containing the
+            class number for box_predictions ordered by class and box score.
+        predicted_box_scores: a numpy.ndarray of shape (?) containing the
+            box scores for box_predictions ordered by class and box score
+        """
+        boxes_nms = []
+        scores_nms = []
+        classes_nms = []
+
+        for i in range(len(filtered_boxes)):
+            selected_indices = tf.image.non_max_suppression(
+                filtered_boxes[i], box_scores[i], max_output_size=50,
+                iou_threshold=self.nms_t
+            )
+
+            selected_boxes = tf.gather(filtered_boxes[i], selected_indices)
+            selected_scores = tf.gather(box_scores[i], selected_indices)
+            selected_classes = tf.gather(box_classes[i], selected_indices)
+
+        return boxes_nms, scores_nms, classes_nms
