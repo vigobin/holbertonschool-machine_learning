@@ -93,9 +93,9 @@ class Yolo:
                         cx = (col + self.sigmoid(tx)) / grid_w
                         cy = (row + self.sigmoid(ty)) / grid_h
                         bw = self.anchors[i][anchor][0] * np.exp(
-                            tw) / self.model.input.shape[1]
+                            tw) / self.model.input.shape[1].value
                         bh = self.anchors[i][anchor][1] * np.exp(
-                            th) / self.model.input.shape[2]
+                            th) / self.model.input.shape[2].value
 
                         # Calculate the (x1, y1, x2, y2) coordinates of the
                         #   processed boundary box relative to the original
