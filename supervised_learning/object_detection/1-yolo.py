@@ -81,9 +81,9 @@ class Yolo:
             tx = (box[..., 0] + cx) / grid_w
             ty = (box[..., 1] + cy) / grid_h
             tw = np.exp(box[..., 2]) * self.anchors[i][
-                :, 0] / self.model.input.shape[1].value
+                :, 0] / self.model.input.shape[1]
             th = np.exp(box[..., 3]) * self.anchors[i][
-                :, 1] / self.model.input.shape[2].value
+                :, 1] / self.model.input.shape[2]
 
             box[..., 0] = (tx - tw / 2) * image_size[1]
             box[..., 1] = (ty - th / 2) * image_size[0]
