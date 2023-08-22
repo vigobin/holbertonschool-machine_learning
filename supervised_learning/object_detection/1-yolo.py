@@ -63,20 +63,29 @@ class Yolo:
                         containing the box’s class probabilities for each
                         output, respectively
         """
+        # Initialize lists for processed data
         boxes = []
         box_confidences = []
         box_class_probs = []
 
+        # Extract data for boundary boxes using slicing from each output
         for output in outputs:
             boxes.append(output[..., :4])
             box_confidences.append(output[..., 4:5])
             box_class_probs.append(output[..., 5:])
 
+        # Process Boundary boxes using transformation formulas
+        #   from YOLO algorithm
         processed_boxes = []
+
+        # Loop through the grid cells, anchor boxes, and dimensions
+        #   of the boundary box coordinates.
         for i, box in enumerate(boxes):
             grid_h, grid_w, anchor_boxes, _ = box.shape
             processed_box = np.zeros_like(box)
 
+            # Calculate the transformed coordinates (cx, cy, bw, bh)
+            #   based on the original values (tx, ty, tw, th)
             for row in range(grid_h):
                 for col in range(grid_w):
                     for anchor in range(anchor_boxes):
@@ -88,6 +97,9 @@ class Yolo:
                         bh = self.anchors[i][anchor][1] * np.exp(
                             th) / self.model.input.shape[2]
 
+                        # Calculate the (x1, y1, x2, y2) coordinates of the
+                        #   processed boundary box relative to the original
+                        #   image dimensions.
                         x1 = (cx - bw / 2) * image_size[1]
                         y1 = (cy - bh / 2) * image_size[0]
                         x2 = (cx + bw / 2) * image_size[1]
@@ -103,4 +115,5 @@ class Yolo:
         return processed_boxes, box_confidences, box_class_probs
 
     def sigmoid(self, x):
+        """Sigmoid function"""
         return 1 / (1 + np.exp(-x))
