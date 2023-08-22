@@ -63,7 +63,7 @@ class Yolo:
                         containing the box’s class probabilities for each
                         output, respectively
         """
-        # Initialize lists for processed data
+        # Initialize lists for processed data from outputs
         boxes = []
         box_confidences = []
         box_class_probs = []
@@ -73,13 +73,24 @@ class Yolo:
             boxes.append(output[..., :4])
             box_confidences.append(output[..., 4:5])
             box_class_probs.append(output[..., 5:])
+
+        # Iterate over the indices of the box_confidences and
+        #   box_class_probs lists simultaneously.
+        #  retrieve the dimensions of the box_conf array.
         for i, (box_conf, box_class_prob) in enumerate(zip(box_confidences,
                                                            box_class_probs)):
             grid_h, grid_w, anchor_boxes, _ = box_conf.shape
 
+            # Compute cy and cx, which represent the grid cell
+            #   coordinates for each anchor box.
             cy = np.indices((grid_h, grid_w, anchor_boxes))[0]
             cx = np.indices((grid_h, grid_w, anchor_boxes))[1]
 
+            #  Calculate the predicted box center coordinates (tx and ty)
+            #   and predicted box width and height (tw and th)
+            # based on the equations provided in the YOLO algorithm by
+            # accessing the corresponding values from the
+            #  boxes and anchors lists.
             tx = (boxes[i][..., 0] + cx) / grid_w
             ty = (boxes[i][..., 1] + cy) / grid_h
             tw = np.exp(boxes[i][..., 2]) * self.anchors[i][
@@ -87,11 +98,17 @@ class Yolo:
             th = np.exp(boxes[i][..., 3]) * self.anchors[i][
                 :, 1] / self.model.input.shape[2].value
 
+            # Adjust the predicted box coordinates (x1, y1, x2, y2
+            #  from their normalized grid values to values relative
+            # to the original image size.
             boxes[i][..., 0] = (tx - tw / 2) * image_size[1]
             boxes[i][..., 1] = (ty - th / 2) * image_size[0]
             boxes[i][..., 2] = (tx + tw / 2) * image_size[1]
             boxes[i][..., 3] = (ty + th / 2) * image_size[0]
 
+            # Apply the sigmoid function box_conf and box_class_prob arrays
+            #  to ensure that their values are within the range of [0, 1],
+            # representing confidences and probabilities.
             box_confidences[i] = self.sigmoid(box_conf)
             box_class_probs[i] = self.sigmoid(box_class_prob)
 
