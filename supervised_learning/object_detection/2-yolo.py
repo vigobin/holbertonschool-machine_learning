@@ -138,24 +138,24 @@ class Yolo:
             box_scores: a numpy.ndarray of shape (?)
                 containing the box scores for each box in filtered_boxes
         """
-        boxes_filtered = []
-        scores = []
-        classes = []
+        filtered_boxes = []
+        box_classes = []
+        box_scores = []
 
-        for box, confidences, class_probs in zip(boxes, box_confidences,
-                                                 box_class_probs):
-            box_scores = confidences * class_probs
-            box_classes = np.argmax(box_scores, axis=-1)
-            box_class_scores = np.max(box_scores, axis=-1)
+        for i, (box, box_conf, box_class_prob) in enumerate(zip(
+                boxes, box_confidences, box_class_probs)):
+            box_scores_per_class = box_conf * box_class_prob
+            box_class = np.argmax(box_scores_per_class, axis=-1)
+            box_score = np.max(box_scores_per_class, axis=-1)
 
-            filtering_mask = box_class_scores >= self.class_t
+            mask = box_score >= self.class_t
 
-            filtered_boxes = box[filtering_mask]
-            filtered_scores = box_class_scores[filtering_mask]
-            filtered_classes = box_classes[filtering_mask]
+            filtered_boxes.extend(box[mask])
+            box_classes.extend(box_class[mask])
+            box_scores.extend(box_score[mask])
 
-            boxes_filtered.append(filtered_boxes)
-            scores.append(filtered_scores)
-            classes.append(filtered_classes)
+        filtered_boxes = np.array(filtered_boxes)
+        box_classes = np.array(box_classes)
+        box_scores = np.array(box_scores)
 
-        return boxes_filtered, scores, classes
+        return filtered_boxes, box_classes, box_scores
