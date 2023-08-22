@@ -73,46 +73,29 @@ class Yolo:
             boxes.append(output[..., :4])
             box_confidences.append(output[..., 4:5])
             box_class_probs.append(output[..., 5:])
+        for i, (box_conf, box_class_prob) in enumerate(zip(box_confidences,
+                                                           box_class_probs)):
+            grid_h, grid_w, anchor_boxes, _ = box_conf.shape
 
-        # Process Boundary boxes using transformation formulas
-        #   from YOLO algorithm
-        processed_boxes = []
+            cy = np.indices((grid_h, grid_w, anchor_boxes))[0]
+            cx = np.indices((grid_h, grid_w, anchor_boxes))[1]
 
-        # Loop through the grid cells, anchor boxes, and dimensions
-        #   of the boundary box coordinates.
-        for i, box in enumerate(boxes):
-            grid_h, grid_w, anchor_boxes, _ = box.shape
-            processed_box = np.zeros_like(box)
+            tx = (boxes[i][..., 0] + cx) / grid_w
+            ty = (boxes[i][..., 1] + cy) / grid_h
+            tw = np.exp(boxes[i][..., 2]) * self.anchors[i][
+                :, 0] / self.model.input.shape[1]
+            th = np.exp(boxes[i][..., 3]) * self.anchors[i][
+                :, 1] / self.model.input.shape[2]
 
-            # Calculate the transformed coordinates (cx, cy, bw, bh)
-            #   based on the original values (tx, ty, tw, th)
-            for row in range(grid_h):
-                for col in range(grid_w):
-                    for anchor in range(anchor_boxes):
-                        tx, ty, tw, th = box[row, col, anchor, :4]
-                        cx = (col + self.sigmoid(tx)) / grid_w
-                        cy = (row + self.sigmoid(ty)) / grid_h
-                        bw = self.anchors[i][anchor][0] * np.exp(
-                            tw) / self.model.input.shape[1].value
-                        bh = self.anchors[i][anchor][1] * np.exp(
-                            th) / self.model.input.shape[2].value
+            boxes[i][..., 0] = (tx - tw / 2) * image_size[1]
+            boxes[i][..., 1] = (ty - th / 2) * image_size[0]
+            boxes[i][..., 2] = (tx + tw / 2) * image_size[1]
+            boxes[i][..., 3] = (ty + th / 2) * image_size[0]
 
-                        # Calculate the (x1, y1, x2, y2) coordinates of the
-                        #   processed boundary box relative to the original
-                        #   image dimensions.
-                        x1 = (cx - bw / 2) * image_size[1]
-                        y1 = (cy - bh / 2) * image_size[0]
-                        x2 = (cx + bw / 2) * image_size[1]
-                        y2 = (cy + bh / 2) * image_size[0]
+            box_confidences[i] = self.sigmoid(box_conf)
+            box_class_probs[i] = self.sigmoid(box_class_prob)
 
-                        processed_box[row, col, anchor, 0] = x1
-                        processed_box[row, col, anchor, 1] = y1
-                        processed_box[row, col, anchor, 2] = x2
-                        processed_box[row, col, anchor, 3] = y2
-
-            processed_boxes.append(processed_box)
-
-        return processed_boxes, box_confidences, box_class_probs
+        return boxes, box_confidences, box_class_probs
 
     def sigmoid(self, x):
         """Sigmoid function"""
