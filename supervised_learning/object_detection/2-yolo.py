@@ -142,7 +142,7 @@ class Yolo:
         box_classes = []
         box_scores = []
 
-        for i, (box, box_conf, box_class_prob) in enumerate(zip(
+        for box, box_conf, box_class_prob in (zip(
                 boxes, box_confidences, box_class_probs)):
             box_scores_per_class = box_conf * box_class_prob
             box_class = np.argmax(box_scores_per_class, axis=-1)
