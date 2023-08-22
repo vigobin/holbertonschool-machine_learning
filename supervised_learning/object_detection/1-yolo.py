@@ -2,7 +2,7 @@
 """Process Outputs"""
 
 import numpy as np
-from tensorflow.keras.models import load_model
+import tensorflow.keras as K
 
 
 class Yolo:
@@ -23,7 +23,7 @@ class Yolo:
                     each prediction.
                 2 => [anchor_box_width, anchor_box_height]
         """
-        self.model = load_model(model_path)
+        self.model = K.models.load_model(model_path)
         self.class_names = self.load_classes(classes_path)
         self.class_t = class_t
         self.nms_t = nms_t
