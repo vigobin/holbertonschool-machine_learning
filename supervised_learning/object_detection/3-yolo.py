@@ -2,8 +2,7 @@
 """Non-max Suppression"""
 
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.models import load_model
+import tensorflow.keras as K
 
 
 class Yolo:
@@ -24,7 +23,7 @@ class Yolo:
                     each prediction.
                 2 => [anchor_box_width, anchor_box_height]
         """
-        self.model = load_model(model_path)
+        self.model = K.models.load_model(model_path)
         self.class_names = self.load_classes(classes_path)
         self.class_t = class_t
         self.nms_t = nms_t
@@ -64,34 +63,60 @@ class Yolo:
                         containing the box’s class probabilities for each
                         output, respectively
         """
+        # Initialize lists for processed data from outputs
         boxes = []
         box_confidences = []
         box_class_probs = []
 
+        # Extract data for boundary boxes using slicing from each output
         for output in outputs:
             boxes.append(output[..., :4])
             box_confidences.append(output[..., 4:5])
             box_class_probs.append(output[..., 5:])
 
-        for i, box in enumerate(boxes):
-            grid_h, grid_w, anchor_boxes, _ = box.shape
+        # Iterate over the indices of the box_confidences and
+        #   box_class_probs lists simultaneously.
+        #  retrieve the dimensions of the box_conf array.
+        for i, (box_conf, box_class_prob) in enumerate(zip(box_confidences,
+                                                           box_class_probs)):
+            grid_h, grid_w, anchor_boxes, _ = box_conf.shape
 
+            # Compute cy and cx, which represent the grid cell
+            #   coordinates for each anchor box.
             cy = np.indices((grid_h, grid_w, anchor_boxes))[0]
             cx = np.indices((grid_h, grid_w, anchor_boxes))[1]
 
-            tx = (box[..., 0] + cx) / grid_w
-            ty = (box[..., 1] + cy) / grid_h
-            tw = np.exp(box[..., 2]) * self.anchors[i][
+            #  Calculate the predicted box center coordinates (tx and ty)
+            #   and predicted box width and height (tw and th)
+            # based on the equations provided in the YOLO algorithm by
+            # accessing the corresponding values from the
+            #  boxes and anchors lists.
+            tx = (boxes[i][..., 0] + cx) / grid_w
+            ty = (boxes[i][..., 1] + cy) / grid_h
+            tw = np.exp(boxes[i][..., 2]) * self.anchors[i][
                 :, 0] / self.model.input.shape[1].value
-            th = np.exp(box[..., 3]) * self.anchors[i][
+            th = np.exp(boxes[i][..., 3]) * self.anchors[i][
                 :, 1] / self.model.input.shape[2].value
 
-            box[..., 0] = (tx - tw / 2) * image_size[1]
-            box[..., 1] = (ty - th / 2) * image_size[0]
-            box[..., 2] = (tx + tw / 2) * image_size[1]
-            box[..., 3] = (ty + th / 2) * image_size[0]
+            # Adjust the predicted box coordinates (x1, y1, x2, y2
+            #  from their normalized grid values to values relative
+            # to the original image size.
+            boxes[i][..., 0] = (tx - tw / 2) * image_size[1]
+            boxes[i][..., 1] = (ty - th / 2) * image_size[0]
+            boxes[i][..., 2] = (tx + tw / 2) * image_size[1]
+            boxes[i][..., 3] = (ty + th / 2) * image_size[0]
+
+            # Apply the sigmoid function box_conf and box_class_prob arrays
+            #  to ensure that their values are within the range of [0, 1],
+            # representing confidences and probabilities.
+            box_confidences[i] = self.sigmoid(box_conf)
+            box_class_probs[i] = self.sigmoid(box_class_prob)
 
         return boxes, box_confidences, box_class_probs
+
+    def sigmoid(self, x):
+        """Sigmoid function"""
+        return 1 / (1 + np.exp(-x))
 
     def filter_boxes(self, boxes, box_confidences, box_class_probs):
         """
@@ -113,27 +138,41 @@ class Yolo:
             box_scores: a numpy.ndarray of shape (?)
                 containing the box scores for each box in filtered_boxes
         """
-        boxes_filtered = []
-        scores = []
-        classes = []
+        filtered_boxes = []
+        box_classes = []
+        box_scores = []
 
-        for box, confidences, class_probs in zip(boxes, box_confidences,
-                                                 box_class_probs):
-            box_scores = confidences * class_probs
-            box_classes = np.argmax(box_scores, axis=-1)
-            box_class_scores = np.max(box_scores, axis=-1)
+        for box, box_conf, box_class_prob in (zip(
+                boxes, box_confidences, box_class_probs)):
+            box_scores_per_class = box_conf * box_class_prob
+            box_class = np.argmax(box_scores_per_class, axis=-1)
+            box_score = np.max(box_scores_per_class, axis=-1)
 
-            filtering_mask = box_class_scores >= self.class_t
+            mask = box_score >= self.class_t
 
-            filtered_boxes = box[filtering_mask]
-            filtered_scores = box_class_scores[filtering_mask]
-            filtered_classes = box_classes[filtering_mask]
+            filtered_boxes.extend(box[mask])
+            box_classes.extend(box_class[mask])
+            box_scores.extend(box_score[mask])
 
-            boxes_filtered.append(filtered_boxes)
-            scores.append(filtered_scores)
-            classes.append(filtered_classes)
+        filtered_boxes = np.array(filtered_boxes)
+        box_classes = np.array(box_classes)
+        box_scores = np.array(box_scores)
 
-        return boxes_filtered, scores, classes
+        return filtered_boxes, box_classes, box_scores
+
+    def compute_iou(self, box1, box2):
+        """Calculate IOU"""
+        x1 = np.maximum(box1[0], box2[0])
+        y1 = np.maximum(box1[1], box2[1])
+        x2 = np.minimum(box1[2], box2[2])
+        y2 = np.minimum(box1[3], box2[3])
+
+        intersection_area = np.maximum(0, x2 - x1) * np.maximum(0, y2 - y1)
+        box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
+        boxes2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])
+
+        iou = intersection_area / (box1_area + boxes2_area - intersection_area)
+        return iou
 
     def non_max_suppression(self, filtered_boxes, box_classes, box_scores):
         """
@@ -152,18 +191,28 @@ class Yolo:
         predicted_box_scores: a numpy.ndarray of shape (?) containing the
             box scores for box_predictions ordered by class and box score
         """
-        boxes_nms = []
-        scores_nms = []
-        classes_nms = []
+        selected_boxes = []
+        selected_classes = []
+        selected_scores = []
 
-        for i in range(len(filtered_boxes)):
-            selected_indices = tf.image.non_max_suppression(
-                filtered_boxes[i], box_scores[i], max_output_size=50,
-                iou_threshold=self.nms_t
-            )
+        for c in range(len(self.class_names)):
+            class_mask = box_classes == c
+            class_boxes = filtered_boxes[class_mask]
+            class_box_scores = box_scores[class_mask]
 
-            selected_boxes = tf.gather(filtered_boxes[i], selected_indices)
-            selected_scores = tf.gather(box_scores[i], selected_indices)
-            selected_classes = tf.gather(box_classes[i], selected_indices)
+            # Apply non-max suppression
+            keep = self.compute_iou(class_boxes, class_box_scores) < self.nms_t
 
-        return boxes_nms, scores_nms, classes_nms
+            class_predictions = class_boxes[keep]
+            class_pred_scores = class_box_scores[keep]
+            class_pred_classes = np.array([c] * len(class_predictions))
+
+            selected_boxes.extend(class_predictions)
+            selected_classes.extend(class_pred_classes)
+            selected_scores.extend(class_pred_scores)
+
+        box_predictions = np.array(selected_boxes)
+        predicted_box_classes = np.array(selected_classes)
+        predicted_box_scores = np.array(selected_scores)
+
+        return box_predictions, predicted_box_classes, predicted_box_scores
