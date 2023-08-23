@@ -101,9 +101,9 @@ class Yolo:
                         #   are adjusted using the anchor box dimensions and
                         #   the exponential transformation of tw and th.
                         bw = self.anchors[i][anchor][0] * np.exp(
-                            tw) / self.model.input.shape[1].value
+                            tw) / self.model.input.shape[1]
                         bh = self.anchors[i][anchor][1] * np.exp(
-                            th) / self.model.input.shape[2].value
+                            th) / self.model.input.shape[2]
 
                         #  Transformed bounding box coordinates are scaled
                         #   to the original image size.
