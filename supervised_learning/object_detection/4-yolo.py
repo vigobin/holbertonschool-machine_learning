@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Load images"""
 
+import cv2
 import numpy as np
 import os
-from PIL import Image
-import tensorflow as tf
-from tensorflow.keras.models import load_model
+import tensorflow.keras as K
 
 
 class Yolo:
@@ -26,7 +25,7 @@ class Yolo:
                     each prediction.
                 2 => [anchor_box_width, anchor_box_height]
         """
-        self.model = load_model(model_path)
+        self.model = K.models.load_model(model_path)
         self.class_names = self.load_classes(classes_path)
         self.class_t = class_t
         self.nms_t = nms_t
@@ -66,34 +65,64 @@ class Yolo:
                         containing the box’s class probabilities for each
                         output, respectively
         """
+        # Initialize lists for processed data from outputs
         boxes = []
         box_confidences = []
         box_class_probs = []
 
-        for output in outputs:
-            boxes.append(output[..., :4])
-            box_confidences.append(output[..., 4:5])
-            box_class_probs.append(output[..., 5:])
+        # Extract data for boundary boxes using slicing from each output,
+        # transform confidence scores and class probabilities,
+        # through a sigmoid activation function.
+        for output in range(len(outputs)):
+            boxes.append(outputs[output][..., :4])
+            box_confidences.append(self.sigmoid(outputs[output][..., 4:5]))
+            box_class_probs.append(self.sigmoid(outputs[output][..., 5:]))
 
+        # Iterate through list of boxes to keep track of the corresponding
+        #  anchor configuration.
+        processed_boxes = []
         for i, box in enumerate(boxes):
-            grid_h, grid_w, anchor_boxes, _ = box.shape
+            grid_height, grid_width, anchor_boxes, _ = box.shape
+            processed_box = np.zeros_like(box)
 
-            cy = np.indices((grid_h, grid_w, anchor_boxes))[0]
-            cx = np.indices((grid_h, grid_w, anchor_boxes))[1]
+            # Iterate through each cell in the grid and each anchor box
+            #   configuration. For each cell and anchor, it calculates the
+            #   transformed bounding box coordinates.
+            for row in range(grid_height):
+                for col in range(grid_width):
+                    for anchor in range(anchor_boxes):
+                        tx, ty, tw, th = box[row, col, anchor, :4]
+                        # Predicted center of the box (cx and cy) is
+                        #   adjusted by applying the sigmoid function.
+                        cx = (col + self.sigmoid(tx)) / grid_width
+                        cy = (row + self.sigmoid(ty)) / grid_height
+                        # Predicted width and height of the box (bw and bh)
+                        #   are adjusted using the anchor box dimensions and
+                        #   the exponential transformation of tw and th.
+                        bw = self.anchors[i][anchor][0] * np.exp(
+                            tw) / self.model.input.shape[1]
+                        bh = self.anchors[i][anchor][1] * np.exp(
+                            th) / self.model.input.shape[2]
 
-            tx = (box[..., 0] + cx) / grid_w
-            ty = (box[..., 1] + cy) / grid_h
-            tw = np.exp(box[..., 2]) * self.anchors[i][
-                :, 0] / self.model.input.shape[1].value
-            th = np.exp(box[..., 3]) * self.anchors[i][
-                :, 1] / self.model.input.shape[2].value
+                        #  Transformed bounding box coordinates are scaled
+                        #   to the original image size.
+                        x1 = (cx - bw / 2) * image_size[1]
+                        y1 = (cy - bh / 2) * image_size[0]
+                        x2 = (cx + bw / 2) * image_size[1]
+                        y2 = (cy + bh / 2) * image_size[0]
 
-            box[..., 0] = (tx - tw / 2) * image_size[1]
-            box[..., 1] = (ty - th / 2) * image_size[0]
-            box[..., 2] = (tx + tw / 2) * image_size[1]
-            box[..., 3] = (ty + th / 2) * image_size[0]
+                        processed_box[row, col, anchor, 0] = x1
+                        processed_box[row, col, anchor, 1] = y1
+                        processed_box[row, col, anchor, 2] = x2
+                        processed_box[row, col, anchor, 3] = y2
+
+            processed_boxes.append(processed_box)
 
         return boxes, box_confidences, box_class_probs
+
+    def sigmoid(self, x):
+        """Sigmoid function"""
+        return 1 / (1 + np.exp(-x))
 
     def filter_boxes(self, boxes, box_confidences, box_class_probs):
         """
@@ -115,27 +144,41 @@ class Yolo:
             box_scores: a numpy.ndarray of shape (?)
                 containing the box scores for each box in filtered_boxes
         """
-        boxes_filtered = []
-        scores = []
-        classes = []
+        filtered_boxes = []
+        box_classes = []
+        box_scores = []
 
-        for box, confidences, class_probs in zip(boxes, box_confidences,
-                                                 box_class_probs):
-            box_scores = confidences * class_probs
-            box_classes = np.argmax(box_scores, axis=-1)
-            box_class_scores = np.max(box_scores, axis=-1)
+        for box, box_conf, box_class_prob in (zip(
+                boxes, box_confidences, box_class_probs)):
+            box_scores_per_class = box_conf * box_class_prob
+            box_class = np.argmax(box_scores_per_class, axis=-1)
+            box_score = np.max(box_scores_per_class, axis=-1)
 
-            filtering_mask = box_class_scores >= self.class_t
+            mask = box_score >= self.class_t
 
-            filtered_boxes = box[filtering_mask]
-            filtered_scores = box_class_scores[filtering_mask]
-            filtered_classes = box_classes[filtering_mask]
+            filtered_boxes.extend(box[mask])
+            box_classes.extend(box_class[mask])
+            box_scores.extend(box_score[mask])
 
-            boxes_filtered.append(filtered_boxes)
-            scores.append(filtered_scores)
-            classes.append(filtered_classes)
+        filtered_boxes = np.array(filtered_boxes)
+        box_classes = np.array(box_classes)
+        box_scores = np.array(box_scores)
 
-        return boxes_filtered, scores, classes
+        return filtered_boxes, box_classes, box_scores
+
+    def compute_iou(self, box1, box2):
+        """Calculate Intersection over Union"""
+        x1 = np.maximum(box1[0], box2[:, 0])
+        y1 = np.maximum(box1[1], box2[:, 1])
+        x2 = np.minimum(box1[2], box2[:, 2])
+        y2 = np.minimum(box1[3], box2[:, 3])
+
+        intersection_area = np.maximum(0, x2 - x1) * np.maximum(0, y2 - y1)
+        box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
+        box2_area = (box2[:, 2] - box2[:, 0]) * (box2[:, 3] - box2[:, 1])
+
+        iou = intersection_area / (box1_area + box2_area - intersection_area)
+        return iou
 
     def non_max_suppression(self, filtered_boxes, box_classes, box_scores):
         """
@@ -154,21 +197,32 @@ class Yolo:
         predicted_box_scores: a numpy.ndarray of shape (?) containing the
             box scores for box_predictions ordered by class and box score
         """
-        boxes_nms = []
-        scores_nms = []
-        classes_nms = []
+        sorted_indices = np.argsort(box_scores)[::-1]
+        box_predictions = []
+        predicted_box_classes = []
+        predicted_box_scores = []
 
-        for i in range(len(filtered_boxes)):
-            selected_indices = tf.image.non_max_suppression(
-                filtered_boxes[i], box_scores[i], max_output_size=50,
-                iou_threshold=self.nms_t
-            )
+        while len(sorted_indices) > 0:
+            # Get the index of the box with the highest score
+            max_score_index = sorted_indices[0]
 
-            selected_boxes = tf.gather(filtered_boxes[i], selected_indices)
-            selected_scores = tf.gather(box_scores[i], selected_indices)
-            selected_classes = tf.gather(box_classes[i], selected_indices)
+            # Append the corresponding box, class, and score to the final lists
+            box_predictions.append(filtered_boxes[max_score_index])
+            predicted_box_classes.append(box_classes[max_score_index])
+            predicted_box_scores.append(box_scores[max_score_index])
 
-        return boxes_nms, scores_nms, classes_nms
+            # Compute IoU for the current box with all other boxes
+            iou = self.compute_iou(filtered_boxes[max_score_index],
+                                   filtered_boxes[sorted_indices[1:]])
+
+            # Find indices of boxes with IoU less than NMS threshold
+            overlapping_indices = np.where(iou <= self.nms_t)[0]
+
+            # Update the sorted_indices list by removing overlapping boxes
+            sorted_indices = sorted_indices[overlapping_indices + 1]
+
+        return np.array(box_predictions), np.array(
+            predicted_box_classes), np.array(predicted_box_scores)
 
     @staticmethod
     def load_images(folder_path):
@@ -184,9 +238,7 @@ class Yolo:
 
         for filename in os.listdir(folder_path):
             if filename.endswith(('.png', '.jpg', 'jpeg')):
-                image_path = os.path.join(folder_path, filename)
-                image = np.array(Image.open(image_path))
-                images.append(image)
-                image_paths.append(image_path)
+                images.append(cv2.imread(folder_path + '/' + filename))
+                image_paths.append(folder_path + '/' + filename)
 
         return images, image_paths
