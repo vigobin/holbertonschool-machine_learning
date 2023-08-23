@@ -49,7 +49,7 @@ class Yolo:
             image_size is a numpy.ndarray containing the image’s original size
                 [image_height, image_width]
             Returns a tuple of (boxes, box_confidences, box_class_probs):
-                processed_boxes: a list of numpy.ndarrays of shape (grid_height,
+             processed_boxes: a list of numpy.ndarrays of shape (grid_height,
                     grid_width, anchor_boxes, 4) containing the processed
                     boundary boxes for each output, respectively:
                     4 => (x1, y1, x2, y2)
