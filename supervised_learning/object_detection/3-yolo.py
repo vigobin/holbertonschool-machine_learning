@@ -161,17 +161,17 @@ class Yolo:
         return filtered_boxes, box_classes, box_scores
 
     def compute_iou(self, box1, box2):
-        """Calculate IOU"""
-        x1 = np.maximum(box1[0], box2[0])
-        y1 = np.maximum(box1[1], box2[1])
-        x2 = np.minimum(box1[2], box2[2])
-        y2 = np.minimum(box1[3], box2[3])
+        """Calculate Intersection over Union"""
+        x1 = np.maximum(box1[0], box2[:, 0])
+        y1 = np.maximum(box1[1], box2[:, 1])
+        x2 = np.minimum(box1[2], box2[:, 2])
+        y2 = np.minimum(box1[3], box2[:, 3])
 
         intersection_area = np.maximum(0, x2 - x1) * np.maximum(0, y2 - y1)
         box1_area = (box1[2] - box1[0]) * (box1[3] - box1[1])
-        boxes2_area = (box2[2] - box2[0]) * (box2[3] - box2[1])
+        box2_area = (box2[:, 2] - box2[:, 0]) * (box2[:, 3] - box2[:, 1])
 
-        iou = intersection_area / (box1_area + boxes2_area - intersection_area)
+        iou = intersection_area / (box1_area + box2_area - intersection_area)
         return iou
 
     def non_max_suppression(self, filtered_boxes, box_classes, box_scores):
@@ -191,28 +191,29 @@ class Yolo:
         predicted_box_scores: a numpy.ndarray of shape (?) containing the
             box scores for box_predictions ordered by class and box score
         """
-        selected_boxes = []
-        selected_classes = []
-        selected_scores = []
+        sorted_indices = np.argsort(box_scores)[::-1]
+        box_predictions = []
+        predicted_box_classes = []
+        predicted_box_scores = []
 
-        for c in range(len(self.class_names)):
-            class_mask = box_classes == c
-            class_boxes = filtered_boxes[class_mask]
-            class_box_scores = box_scores[class_mask]
+        while len(sorted_indices) > 0:
+            # Get the index of the box with the highest score
+            max_score_index = sorted_indices[0]
 
-            # Apply non-max suppression
-            keep = self.compute_iou(class_boxes, class_box_scores) < self.nms_t
+            # Append the corresponding box, class, and score to the final lists
+            box_predictions.append(filtered_boxes[max_score_index])
+            predicted_box_classes.append(box_classes[max_score_index])
+            predicted_box_scores.append(box_scores[max_score_index])
 
-            class_predictions = class_boxes[keep]
-            class_pred_scores = class_box_scores[keep]
-            class_pred_classes = np.array([c] * len(class_predictions))
+            # Compute IoU for the current box with all other boxes
+            iou = self.compute_iou(filtered_boxes[max_score_index],
+                                   filtered_boxes[sorted_indices[1:]])
 
-            selected_boxes.extend(class_predictions)
-            selected_classes.extend(class_pred_classes)
-            selected_scores.extend(class_pred_scores)
+            # Find indices of boxes with IoU less than NMS threshold
+            overlapping_indices = np.where(iou <= self.nms_t)[0]
 
-        box_predictions = np.array(selected_boxes)
-        predicted_box_classes = np.array(selected_classes)
-        predicted_box_scores = np.array(selected_scores)
+            # Update the sorted_indices list by removing overlapping boxes
+            sorted_indices = sorted_indices[overlapping_indices + 1]
 
-        return box_predictions, predicted_box_classes, predicted_box_scores
+        return np.array(box_predictions), np.array(
+            predicted_box_classes), np.array(predicted_box_scores)
