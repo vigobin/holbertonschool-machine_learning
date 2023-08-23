@@ -50,8 +50,9 @@ class Yolo:
                     classes => class probabilities for all classes
             image_size is a numpy.ndarray containing the image’s original size
                 [image_height, image_width]
-            Returns a tuple of (boxes, box_confidences, box_class_probs):
-                boxes: a list of numpy.ndarrays of shape (grid_height,
+            Returns a tuple of (
+                processed_boxes,box_confidences, box_class_probs):
+             processed_boxes: a list of numpy.ndarrays of shape (grid_height,
                     grid_width, anchor_boxes, 4) containing the processed
                     boundary boxes for each output, respectively:
                     4 => (x1, y1, x2, y2)
@@ -100,9 +101,9 @@ class Yolo:
                         #   are adjusted using the anchor box dimensions and
                         #   the exponential transformation of tw and th.
                         bw = self.anchors[i][anchor][0] * np.exp(
-                            tw) / self.model.input.shape[1]
+                            tw) / self.model.input.shape[1].value
                         bh = self.anchors[i][anchor][1] * np.exp(
-                            th) / self.model.input.shape[2]
+                            th) / self.model.input.shape[2].value
 
                         #  Transformed bounding box coordinates are scaled
                         #   to the original image size.
@@ -118,7 +119,7 @@ class Yolo:
 
             processed_boxes.append(processed_box)
 
-        return boxes, box_confidences, box_class_probs
+        return processed_boxes, box_confidences, box_class_probs
 
     def sigmoid(self, x):
         """Sigmoid function"""
@@ -150,12 +151,14 @@ class Yolo:
 
         for box, box_conf, box_class_prob in (zip(
                 boxes, box_confidences, box_class_probs)):
+            # Confidence * probability gives the box score.
             box_scores_per_class = box_conf * box_class_prob
+            # find class predictions that exceed threshold.
             box_class = np.argmax(box_scores_per_class, axis=-1)
             box_score = np.max(box_scores_per_class, axis=-1)
 
+            # Filter box score below threshold.
             mask = box_score >= self.class_t
-
             filtered_boxes.extend(box[mask])
             box_classes.extend(box_class[mask])
             box_scores.extend(box_score[mask])
@@ -197,29 +200,45 @@ class Yolo:
         predicted_box_scores: a numpy.ndarray of shape (?) containing the
             box scores for box_predictions ordered by class and box score
         """
-        sorted_indices = np.argsort(box_scores)[::-1]
         box_predictions = []
         predicted_box_classes = []
         predicted_box_scores = []
 
-        while len(sorted_indices) > 0:
-            # Get the index of the box with the highest score
-            max_score_index = sorted_indices[0]
+        for cls in set(box_classes):
+            class_mask = np.where(box_classes == cls)
+            class_boxes = filtered_boxes[class_mask]
+            class_box_scores = box_scores[class_mask]
 
-            # Append the corresponding box, class, and score to the final lists
-            box_predictions.append(filtered_boxes[max_score_index])
-            predicted_box_classes.append(box_classes[max_score_index])
-            predicted_box_scores.append(box_scores[max_score_index])
+            while len(class_boxes) > 0:
+                # Get the index of the box with the highest score
+                max_score_index = np.argmax(class_box_scores)
 
-            # Compute IoU for the current box with all other boxes
-            iou = self.compute_iou(filtered_boxes[max_score_index],
-                                   filtered_boxes[sorted_indices[1:]])
+                # Append the corresponding box, class, and score to the
+                #   final lists
+                box_predictions.append(class_boxes[max_score_index])
+                predicted_box_classes.append(cls)
+                predicted_box_scores.append(class_box_scores[max_score_index])
 
-            # Find indices of boxes with IoU less than NMS threshold
-            overlapping_indices = np.where(iou <= self.nms_t)[0]
+                # Remove bounding box and confidence score
+                #   for the highest index.
+                class_boxes = np.delete(class_boxes, max_score_index, axis=0)
+                class_box_scores = np.delete(class_box_scores,
+                                             max_score_index, axis=0)
 
-            # Update the sorted_indices list by removing overlapping boxes
-            sorted_indices = sorted_indices[overlapping_indices + 1]
+                # Check that there are no more bounding boxes to remove
+                #  so that all duplicates are removed.
+                if len(class_boxes) == 0:
+                    break
+
+                # Compute IoU for the current box with all other boxes
+                iou = self.compute_iou(box_predictions[-1], class_boxes)
+
+                # Find indices of boxes with IoU less than NMS threshold
+                overlapping_indices = iou < self.nms_t
+
+                # Update the sorted_indices list by removing overlapping boxes
+                class_boxes = class_boxes[overlapping_indices]
+                class_box_scores = class_box_scores[overlapping_indices]
 
         return np.array(box_predictions), np.array(
             predicted_box_classes), np.array(predicted_box_scores)
