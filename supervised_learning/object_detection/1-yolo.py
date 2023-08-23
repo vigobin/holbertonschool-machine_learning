@@ -71,10 +71,10 @@ class Yolo:
         # Extract data for boundary boxes using slicing from each output,
         # transform confidence scores and class probabilities,
         # through a sigmoid activation function.
-        for output in outputs:
-            boxes.append(output[..., :4])
-            box_confidences.append(self.sigmoid(output[..., 4:5]))
-            box_class_probs.append(self.sigmoid(output[..., 5:]))
+        for output in range(len(outputs)):
+            boxes.append(outputs[output][..., :4])
+            box_confidences.append(self.sigmoid(outputs[output][..., 4:5]))
+            box_class_probs.append(self.sigmoid(outputs[output][..., 5:]))
 
         # Iterate through list of boxes to keep track of the corresponding
         #  anchor configuration.
