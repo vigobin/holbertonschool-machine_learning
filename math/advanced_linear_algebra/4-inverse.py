@@ -3,8 +3,33 @@
 
 
 def inverse(matrix):
-    """Calculates the inverse of a matrix"""
-    
+    """Calculates the inverse of a matrix
+        Returns: the inverse of matrix, or None if matrix is singular"""
+    if type(matrix) is not list or len(matrix) == 0:
+        raise TypeError("matrix must be a list of lists")
+
+    for i in matrix:
+        if type(i) is not list:
+            raise TypeError("matrix must be a list of lists")
+
+    n = len(matrix)
+    for row in matrix:
+        if len(row) != n:
+            raise ValueError("matrix must be a non-empty square matrix")
+
+    det_mat = determinant(matrix)
+
+    if det_mat == 0:
+        return None
+
+    cofactors = cofactor(matrix)
+    adjugate_mat = [[cofactors[j][i] for j in range(n)] for i in range(n)]
+    # Calculate inverse by multiplying the adjugate matrix by the
+    #   reciprocal of the determinant.
+    inverse_matrix = [[1 / det_mat * adjugate_mat[i][j] for j in range(
+        n)for i in range(n)]]
+
+    return inverse_matrix
 
 
 def adjugate(matrix):
