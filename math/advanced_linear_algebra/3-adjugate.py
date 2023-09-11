@@ -5,8 +5,10 @@
 def adjugate(matrix):
     """Calculates the adjugate matrix of a matrix"""
 
-    cofactor_matrix = cofactor(matrix)
-    adjugate_martix = [[cofactor_matrix]]
+    cofactors = cofactor(matrix)
+    adjugate_matrix = [[cofactors[j][i] for j in range(len(cofactors))]
+                       for i in range(len(cofactors))]
+    return adjugate_matrix
 
 
 def cofactor(matrix):
