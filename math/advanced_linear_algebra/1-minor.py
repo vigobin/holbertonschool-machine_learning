@@ -16,6 +16,9 @@ def minor(matrix):
         if len(row) != n:
             raise ValueError("matrix must be a non-empty square matrix")
 
+    if n == 1:
+        return[[1]]
+
     minor_matrix = []
 
     for i in range(n):
