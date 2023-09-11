@@ -12,15 +12,19 @@ def determinant(matrix):
             raise TypeError("matrix must be a list of lists")
 
     n = len(matrix)
-    for row in matrix:
-        if len(row) != n:
-            raise ValueError("matrix must be a square matrix")
 
     if n == 0:
         return 1
 
+    if n == 1 and len(matrix[0]) == 0:
+        return 1
+
     if n == 1:
         return matrix[0][0]
+
+    for row in matrix:
+        if len(row) != n:
+            raise ValueError("matrix must be a square matrix")
 
     if n == 2:
         a = matrix[0][0]
