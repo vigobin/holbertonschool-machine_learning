@@ -4,8 +4,8 @@
 import numpy as np
 
 
-def intersection(x, n, P, Pr):
-    """Calculates the intersection of obtaining this data with the various
+def marginal(x, n, P, Pr):
+    """Calculates the marginal probability of obtaining this data with the various
     hypothetical probabilities.
         x is the number of patients that develop severe side effects.
         n is the total number of patients observed.
@@ -35,4 +35,5 @@ def intersection(x, n, P, Pr):
     items = np.math.factorial(n)
     coef = items / (np.math.factorial(x) * np.math.factorial(n - x))
     likelihoods = coef * (P ** x) * ((1 - P) ** (n - x))
-    return Pr * likelihoods
+    intersections = Pr * likelihoods
+    return np.sum(likelihoods * intersections)
