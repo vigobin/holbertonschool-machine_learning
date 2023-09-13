@@ -24,3 +24,12 @@ class MultiNormal:
             for j in range(d):
                 self.cov[i, j] = np.sum((data[i, :] - self.mean[i, :]) * (
                     data[j, :] - self.mean[j, :])) / (n - 1)
+
+    def pdf(self, x):
+        """Calculates the PDF at a data point"""
+        if type(x) is not np.ndarray:
+            raise TypeError("x must be a numpy.ndarray")
+        
+        d = self.mean.shape[0]
+
+        if x.shape != (d, 1)
