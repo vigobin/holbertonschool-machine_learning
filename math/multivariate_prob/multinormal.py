@@ -33,7 +33,7 @@ class MultiNormal:
         d = self.mean.shape[0]
 
         if x.shape != (d, 1):
-            raise ValueError("x must have the shape ({d}, 1)")
+            raise ValueError("x must have the shape ({}, 1)".format(d))
 
         diff = x - self.mean
         exponent = -0.5 * np.dot(np.dot(diff.T, np.linalg.inv(self.cov)), diff)
