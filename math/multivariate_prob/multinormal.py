@@ -32,4 +32,12 @@ class MultiNormal:
         
         d = self.mean.shape[0]
 
-        if x.shape != (d, 1)
+        if x.shape != (d, 1):
+            raise ValueError("x must have the shape ({d}, 1)")
+        
+        diff = x - self.mean
+        exponent = -0.5 * np.dot(np.dot(diff.T, np.linalg.inv(self.cov)), diff)
+        coef = 1 / np.sqrt((2 * np.pi) ** d * np.linalg.det(self.cov))
+        pdf_value = coef * np.exp(exponent)
+
+        return pdf_value
