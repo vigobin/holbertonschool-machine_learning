@@ -4,7 +4,7 @@
 import numpy as np
 
 
-def marginal(x, n, P, Pr):
+def posterior(x, n, P, Pr):
     """Calculates the posterior probablity of obtaining this data with various
     hypothetical probabilities.
         x is the number of patients that develop severe side effects.
