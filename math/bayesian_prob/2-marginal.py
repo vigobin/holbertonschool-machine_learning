@@ -5,15 +5,15 @@ import numpy as np
 
 
 def marginal(x, n, P, Pr):
-    """Calculates the marginal probability of obtaining this data with the various
-    hypothetical probabilities.
+    """Calculates the marginal probability of obtaining this data with
+    the various hypothetical probabilities.
         x is the number of patients that develop severe side effects.
         n is the total number of patients observed.
         P is a 1D numpy.ndarray containing the various hypothetical
             probabilities of developing severe side effects.
         Pr is a 1D numpy.ndarray containing the prior beliefs of P.
-        Returns: a 1D numpy.ndarray containing the intersection of obtaining
-        x and n with each probability in P, respectively."""
+        Returns: the marginal probability of obtaining
+        x and n."""
     if type(n) is not int or n <= 0:
         raise ValueError("n must be a positive integer")
     if type(x) is not int or x < 0:
@@ -36,4 +36,4 @@ def marginal(x, n, P, Pr):
     coef = items / (np.math.factorial(x) * np.math.factorial(n - x))
     likelihoods = coef * (P ** x) * ((1 - P) ** (n - x))
     intersections = Pr * likelihoods
-    return np.sum(likelihoods * intersections)
+    return np.sum(intersections)
