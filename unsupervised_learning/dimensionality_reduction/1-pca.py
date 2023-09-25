@@ -14,7 +14,8 @@ def pca(X, ndim):
 
     U, S, Vt = np.linalg.svd(centered_X, full_matrices=False)
 
-    transformation_matrix = Vt[:ndim, :].T
+    transformation_matrix = Vt[:ndim].T
 
     # perform dimensionality reduction
-    return np.dot(centered_X, transformation_matrix)
+    T = np.dot(centered_X, transformation_matrix)
+    return T
