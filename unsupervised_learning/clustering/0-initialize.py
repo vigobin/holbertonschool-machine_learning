@@ -8,7 +8,7 @@ def initialize(X, k):
     """Initializes cluster centroids for K-means.
     Returns: a numpy.ndarray of shape (k, d) containing the
         initialized centroids for each cluster, or None on failure"""
-    if k <= 0:
+    if type(k) is not int or k <= 0:
         return None
 
     min_values = np.min(X, axis=0)
