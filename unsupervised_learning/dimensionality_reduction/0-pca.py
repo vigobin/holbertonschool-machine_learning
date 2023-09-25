@@ -19,6 +19,6 @@ def pca(X, var=0.95):
     transformation_matrix = Vt[:keep_components, :]
 
     # perform dimensionality reduction
-    reduced_X = np.dot(X, transformation_matrix)
+    reduced_X = np.dot(centered_X, transformation_matrix.T)
 
     return reduced_X
