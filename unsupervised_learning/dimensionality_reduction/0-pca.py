@@ -6,18 +6,19 @@ import numpy as np
 
 def pca(X, var=0.95):
     """Performs PCA on a dataset"""
-    covariance_matrix = np.cov(X, rowvar=False)
+    mean = np.mean(X, axis=0)
+    centered_X = X - mean
 
-    eigenvalues, eigenvectors = np.linalg.eigh(covariance_matrix)
+    U, S, Vt = np.linalg.svd(centered_X, full_matrices=False)
 
-    sorted_indices = np.argsort(eigenvalues)[::-1]
-    eigenvalues = eigenvalues[sorted_indices]
-    eigenvectors = eigenvectors[:, sorted_indices]
+    explained_variance = (S ** 2) / np.sum(S ** 2)
 
-    total_variance = np.sum(eigenvalues)
-    explained_variance = np.cumsum(eigenvalues) / total_variance
+    cumulative_variance = np.cumsum(explained_variance)
     keep_components = np.argmax(explained_variance >= var) + 1
 
-    transformation_matrix = eigenvectors[:, :keep_components]
+    transformation_matrix = Vt[:keep_components, :]
 
+    # perform dimensionality reduction
     reduced_X = np.dot(X, transformation_matrix)
+
+    return reduced_X

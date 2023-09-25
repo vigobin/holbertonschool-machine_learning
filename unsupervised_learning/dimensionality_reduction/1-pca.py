@@ -9,14 +9,12 @@ def pca(X, ndim):
     ndim: the new dimensionality of the transformed X.
     Returns: T, a numpy.ndarray of shape (n, ndim) containing the transformed
     version of X."""
-    covariance_matrix = np.cov(X, rowvar=False)
+    mean = np.mean(X, axis=0)
+    centered_X = X - mean
 
-    eigenvalues, eigenvectors = np.linalg.eigh(covariance_matrix)
+    U, S, Vt = np.linalg.svd(centered_X, full_matrices=False)
 
-    sorted_indices = np.argsort(eigenvalues)[::-1]
-    eigenvalues = eigenvectors[sorted_indices]
-    eigenvectors = eigenvectors[:, sorted_indices]
+    transformation_matrix = Vt[:ndim, :].T
 
-    transformation_matrix = eigenvectors[:, :ndim]
-
-    return np.dot(X, transformation_matrix)
+    # perform dimensionality reduction
+    return np.dot(centered_X, transformation_matrix)
