@@ -10,7 +10,7 @@ def initialize(X, k):
         initialized centroids for each cluster, or None on failure"""
     if type(k) is not int or k <= 0:
         return None
-    if type(X) is not np.ndarray:
+    if type(X) is not np.ndarray or X.shape[0] <= k:
         return None
 
     min_values = np.min(X, axis=0)
