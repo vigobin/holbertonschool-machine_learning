@@ -5,20 +5,20 @@ import numpy as np
 
 
 def pca(X, var=0.95):
-    """Performs PCA on a dataset"""
-    mean = np.mean(X, axis=0)
-    centered_X = X - mean
-
-    U, S, Vt = np.linalg.svd(centered_X, full_matrices=False)
+    """Performs PCA on a dataset
+    var is the fraction of the variance that the PCA transformation
+        should maintain.
+    Returns: the weights matrix, W, that maintains var fraction of
+        X‘s original variance.
+    W is a numpy.ndarray of shape (d, nd) where nd is the new
+        dimensionality of the transformed X."""
+    U, S, Vt = np.linalg.svd(X, full_matrices=False)
 
     explained_variance = (S ** 2) / np.sum(S ** 2)
 
     cumulative_variance = np.cumsum(explained_variance)
     keep_components = np.argmax(cumulative_variance >= var) + 1
 
-    transformation_matrix = Vt[:keep_components, :]
+    W = Vt[:keep_components, :].T
 
-    # perform dimensionality reduction
-    reduced_X = np.dot(centered_X, transformation_matrix.T)
-
-    return reduced_X
+    return W
