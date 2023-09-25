@@ -14,7 +14,7 @@ def pca(X, var=0.95):
     explained_variance = (S ** 2) / np.sum(S ** 2)
 
     cumulative_variance = np.cumsum(explained_variance)
-    keep_components = np.argmax(explained_variance >= var) + 1
+    keep_components = np.argmax(cumulative_variance >= var) + 1
 
     transformation_matrix = Vt[:keep_components, :]
 
