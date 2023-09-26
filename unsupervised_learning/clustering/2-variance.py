@@ -10,3 +10,11 @@ def variance(X, C):
     C is a numpy.ndarray of shape (k, d) containing the centroid means
         for each cluster.
     Returns: var, or None on failure - var is the total variance"""
+    if X.shape[1] != C.shape[1]:
+        return None
+
+    squared_distance = np.linalg.norm(X[:, np.newaxis] - C, axis=2)**2
+
+    var = np.sum(squared_distance)
+
+    return var
