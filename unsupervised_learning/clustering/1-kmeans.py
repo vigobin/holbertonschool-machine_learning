@@ -24,26 +24,23 @@ def kmeans(X, k, iterations=1000):
     if type(iterations) is not int or iterations <= 0:
         return None, None
 
-    centroids = initialize(X, k)
-
-    if centroids is None:
-        return None, None
+    C = initialize(X, k)
 
     for _ in range(iterations):
-        distances = np.linalg.norm(X[:, np.newaxis] - centroids, axis=2)
+        distances = np.linalg.norm(X[:, np.newaxis] - C, axis=2)
 
-        labels = np.argmin(distances, axis=1)
+        clss = np.argmin(distances, axis=1)
 
         new_centroids = np.array([
-            X[labels == i].mean(axis=0) if np.sum(
-                labels == i) > 0 else initialize(
+            X[clss == i].mean(axis=0) if np.sum(
+                clss == i) > 0 else initialize(
                     X, 1)[0] for i in range(k)])
 
-        if np.all(centroids == new_centroids):
+        if np.all(C == new_centroids):
             break
-        centroids = new_centroids
+        C = new_centroids
 
-    return centroids, labels
+    return C, clss
 
 
 def initialize(X, k):
