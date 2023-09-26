@@ -13,8 +13,8 @@ def variance(X, C):
     if X.shape[1] != C.shape[1]:
         return None
 
-    squared_distance = np.linalg.norm(X[:, np.newaxis] - C, axis=2)**2
-
-    var = np.sum(squared_distance)
-
+    var = np.sum((X - C[:, np.newaxis])**2, axis=-1)
+    mean = np.sqrt(var)
+    min = np.min(mean, axis=0)
+    var = np.sum(np.sum(min ** 2))
     return var
