@@ -15,15 +15,21 @@ def pdf(X, m, S):
     P is a numpy.ndarray of shape (n,) containing the PDF values for
         each data point
     All values in P should have a minimum value of 1e-300"""
-    if X.shape[1] != m.shape[0] or X.shape[1] != S.shape[0] or X.shape[1] != S.shape[1]:
+    if X.shape[1] != m.shape[0] or X.shape[1] != S.shape[0]:
         return None
-    
+    if X.shape[1] != S.shape[1]:
+        return None
+    if type(X) is not np.ndarray or type(S) is not np.ndarray:
+        return None
+    if type(m) is not np.ndarray:
+        return None
+
     d = X.shape[1]
 
     determinant_S = np.linalg.det(S)
     if determinant_S == 0:
         return None
-    
+
     inverse_S = np.linalg.inv(S)
 
     difference = X - m
