@@ -17,6 +17,21 @@ def expectation(X, pi, m, S):
         g is a numpy.ndarray of shape (k, n) containing the posterior
             probabilities for each data point in each cluster.
         li is the total log likelihood."""
+    if type(X) is not np.ndarray or type(m) is not np.ndarray:
+        return None, None
+    if type(S) is not np.ndarray or type(pi) is not np.ndarray:
+        return None, None
+    if len(X.shape) != 2 or len(S.shape) != 3:
+        return None, None
+    if len(m.shape) != 2 or len(pi.shape) != 1:
+        return None, None
+    if m.shape[1] != X.shape[1]:
+        return None, None
+    if S.shape[2] != S.shape[1]:
+        return None, None
+    if S.shape[0] != pi.shape[0] or S.shape[0] != m.shape[0]:
+        return None, None
+
     n, d = X.shape
     k = pi.shape[0]
 
