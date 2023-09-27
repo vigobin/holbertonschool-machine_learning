@@ -23,6 +23,10 @@ def pdf(X, m, S):
         return None
     if type(m) is not np.ndarray:
         return None
+    if len(X.shape) != 2 or len(S.shape) != 2:
+        return None
+    if len(m.shape) != 1:
+        return None
 
     d = X.shape[1]
 
