@@ -13,7 +13,7 @@ def optimum_k(X, kmin=1, kmax=None, iterations=1000):
     d_vars is a list containing the difference in variance from the smallest
         cluster size for each cluster size."""
     if kmax is None:
-        kmax = min(len(X), 10)
+        kmax = X.shape[0]
     if kmin < 1 or kmax < kmin:
         return None, None
 
@@ -25,8 +25,6 @@ def optimum_k(X, kmin=1, kmax=None, iterations=1000):
     for k in range(kmin, kmax + 1):
         centroids, cluster_assignments = kmeans(X, k, iterations)
 
-        if centroids is None:
-            return None, None
         total_var = variance(X, centroids)
         results.append((centroids, cluster_assignments))
 
