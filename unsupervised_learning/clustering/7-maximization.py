@@ -16,6 +16,12 @@ def maximization(X, g):
         for each cluster.
     S is a numpy.ndarray of shape (k, d, d) containing the updated covariance
         matrices for each cluster"""
+    if type(g) is not np.ndarray or len(g.shape) != 2:
+        return (None, None, None)
+    if X.shape[0] != g.shape[1]:
+        return (None, None, None)
+    if not np.isclose(np.sum(g, axis=0), 1).all():
+        return (None, None, None)
     try:
         k, n = g.shape
         d = X.shape[1]
