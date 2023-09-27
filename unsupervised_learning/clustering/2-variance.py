@@ -12,7 +12,7 @@ def variance(X, C):
     Returns: var, or None on failure - var is the total variance"""
     if X.shape[1] != C.shape[1]:
         return None
-    if type(X) or type(C) is not np.ndarray:
+    if type(X) is not np.ndarray or type(C) is not np.ndarray:
         return None
 
     var = np.sum((X - C[:, np.newaxis])**2, axis=-1)
