@@ -15,20 +15,17 @@ def pdf(X, m, S):
     P is a numpy.ndarray of shape (n,) containing the PDF values for
         each data point
     All values in P should have a minimum value of 1e-300"""
-    if X.shape[1] != m.shape[0] or X.shape[1] != S.shape[0]:
+    if type(X) is not np.ndarray or type(m) is not np.ndarray:
         return None
-    if X.shape[1] != S.shape[1]:
-        return None
-    if type(X) is not np.ndarray or type(S) is not np.ndarray:
-        return None
-    if type(m) is not np.ndarray:
+    if type(S) is not np.ndarray:
         return None
     if len(X.shape) != 2 or len(S.shape) != 2:
         return None
     if len(m.shape) != 1:
         return None
-
-    d = X.shape[1]
+    _, d = X.shape
+    if m.shape[0] != d or S.shape[0] != d or S.shape[1] != d:
+        return None
 
     determinant_S = np.linalg.det(S)
     if determinant_S == 0:
