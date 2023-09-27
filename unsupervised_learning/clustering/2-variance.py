@@ -10,11 +10,11 @@ def variance(X, C):
     C is a numpy.ndarray of shape (k, d) containing the centroid means
         for each cluster.
     Returns: var, or None on failure - var is the total variance"""
-    if X.shape[1] != C.shape[1]:
-        return None
     if type(X) is not np.ndarray or type(C) is not np.ndarray:
         return None
     if len(C.shape) != 2 or len(X.shape) != 2:
+        return None
+    if X.shape[1] != C.shape[1]:
         return None
 
     var = np.sum((X - C[:, np.newaxis])**2, axis=-1)
