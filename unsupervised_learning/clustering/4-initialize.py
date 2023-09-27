@@ -14,9 +14,9 @@ def initialize(X, k):
         each cluster, initialized with K-means.
     S is a numpy.ndarray of shape (k, d, d) containing the covariance matrices
         for each cluster, initialized as identity matrices."""
-    if k <= 0 or len(X.shape) != 2:
-        return None, None, None
     if type(X) is not np.ndarray or type(k) is not int:
+        return None, None, None
+    if k <= 0 or len(X.shape) != 2:
         return None, None, None
 
     n, d = X.shape
