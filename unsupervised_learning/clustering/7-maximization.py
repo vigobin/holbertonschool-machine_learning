@@ -18,23 +18,23 @@ def maximization(X, g):
         matrices for each cluster"""
     if type(g) is not np.ndarray or len(g.shape) != 2:
         return (None, None, None)
+    if type(X) is not np.ndarray or len(X.shape) != 2:
+        return None, None, None
     if X.shape[0] != g.shape[1]:
         return (None, None, None)
     if not np.isclose(np.sum(g, axis=0), 1).all():
         return (None, None, None)
-    try:
-        k, n = g.shape
-        d = X.shape[1]
 
-        pi = np.sum(g, axis=1) / n
+    k, n = g.shape
+    d = X.shape[1]
 
-        m = (g @ X) / np.sum(g, axis=1)[:, np.newaxis]
-        S = np.zeros((k, d, d))
-        for i in range(k):
-            diff = X - m[i]
-            weighted_diff = (g[i, :, np.newaxis] * diff).T @ diff
-            S[i] = weighted_diff / np.sum(g[i])
+    pi = np.sum(g, axis=1) / n
 
-        return pi, m, S
-    except Exception:
-        return None, None, None
+    m = (g @ X) / np.sum(g, axis=1)[:, np.newaxis]
+    S = np.zeros((k, d, d))
+    for i in range(k):
+        diff = X - m[i]
+        weighted_diff = (g[i, :, np.newaxis] * diff).T @ diff
+        S[i] = weighted_diff / np.sum(g[i])
+
+    return pi, m, S
