@@ -2,6 +2,7 @@
 """Expectation function"""
 
 import numpy as np
+pdf = __import__('5-pdf').pdf
 
 
 def expectation(X, pi, m, S):
@@ -12,8 +13,20 @@ def expectation(X, pi, m, S):
         for each cluster.
     S is a numpy.ndarray of shape (k, d, d) containing the covariance matrices
         for each cluster.
-    Returns: g, l, or None, None on failure
+    Returns: g, li, or None, None on failure
         g is a numpy.ndarray of shape (k, n) containing the posterior
             probabilities for each data point in each cluster.
-        l is the total log likelihood."""
-    
+        li is the total log likelihood."""
+    n, d = X.shape
+    k = pi.shape[0]
+
+    pdf_values = np.zeros((k, n))
+    for i in range(k):
+        pdf_values[i] = pdf(X, m[i], S[i])
+
+    g = pi[:, np.newaxis] * pdf_values
+    g /= np.sum(g, axis=0, keepdims=True)
+
+    li = np.sum(np.log(np.sum(g, axis=0)))
+
+    return g, li
