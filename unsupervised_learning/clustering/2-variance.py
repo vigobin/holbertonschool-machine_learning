@@ -14,6 +14,8 @@ def variance(X, C):
         return None
     if type(X) is not np.ndarray or type(C) is not np.ndarray:
         return None
+    if len(C.shape) != 2 or len(X.shape) != 2:
+        return None
 
     var = np.sum((X - C[:, np.newaxis])**2, axis=-1)
     mean = np.sqrt(var)
