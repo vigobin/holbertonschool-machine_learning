@@ -39,11 +39,11 @@ def expectation(X, pi, m, S):
 
     pdf_values = np.zeros((k, n))
     for i in range(k):
-        pdf_values[i] = pdf(X, m[i], S[i])
+        pdf_values[i] = pdf(X, m[i], S[i]) * pi[i]
 
     g = pi[:, np.newaxis] * pdf_values
     g /= np.sum(g, axis=0, keepdims=True)
 
-    li = np.sum(np.log(np.sum(g, axis=0)))
+    li = np.sum(np.log(np.sum(pdf_values, axis=0)))
 
     return g, li
