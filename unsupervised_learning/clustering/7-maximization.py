@@ -16,13 +16,13 @@ def maximization(X, g):
         for each cluster.
     S is a numpy.ndarray of shape (k, d, d) containing the updated covariance
         matrices for each cluster"""
-    k, n = g.shape
-    d = X.shape[1]
-
-    pi = np.sum(g, axis=1) / n
-
-    m = (g @ X) / np.sum(g, axis=1)[:, np.newaxis]
     try:
+        k, n = g.shape
+        d = X.shape[1]
+
+        pi = np.sum(g, axis=1) / n
+
+        m = (g @ X) / np.sum(g, axis=1)[:, np.newaxis]
         S = np.zeros((k, d, d))
         for i in range(k):
             diff = X - m[i]
