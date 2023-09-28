@@ -19,6 +19,6 @@ def pca(X, var=0.95):
     cumulative_variance = np.cumsum(explained_variance)
     keep_components = np.argmax(cumulative_variance >= var) + 1
 
-    W = Vt[:keep_components, :].T
+    W = Vt[:keep_components + 1].T
 
     return W
