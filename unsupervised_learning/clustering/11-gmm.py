@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""Calculate GMM"""
+
+import sklearn.mixture
 
 
 def gmm(X, k):
@@ -12,4 +16,12 @@ def gmm(X, k):
         for each data point.
     bic is a numpy.ndarray of shape (kmax - kmin + 1) containing the BIC value
         for each cluster size tested"""
-    
+    gmm = sklearn.mixture.GaussianMixture(k)
+
+    pi = gmm.weights_
+    m = gmm.means_
+    S = gmm.covariances_
+    clss = gmm.predict(X)
+    bic = gmm.bic(X)
+
+    return pi, m, S, clss, bic
