@@ -24,4 +24,3 @@ def BIC(X, kmin=1, kmax=None, iterations=1000, tol=1e-5, verbose=False):
         p is the number of parameters required for the model
         n is the number of data points used to create the model
         li is the log likelihood of the model"""
-    
