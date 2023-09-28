@@ -16,7 +16,7 @@ def gmm(X, k):
         for each data point.
     bic is a numpy.ndarray of shape (kmax - kmin + 1) containing the BIC value
         for each cluster size tested"""
-    gmm = sklearn.mixture.GaussianMixture(k)
+    gmm = sklearn.mixture.GaussianMixture(k).fit(X)
 
     pi = gmm.weights_
     m = gmm.means_
