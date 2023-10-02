@@ -16,3 +16,15 @@ def markov_chain(P, s, t=1):
     t is the number of iterations that the markov chain has been through.
     Returns: a numpy.ndarray of shape (1, n) representing the probability of
         being in a specific state after t iterations, or None on failure."""
+    if type(P) is not np.ndarray or type(s) is not np.ndarray:
+        return None
+
+    n = P.shape[0]
+
+    if P.shape != (n, n) or s.shape != (1, n) or t < 1:
+        return None
+
+    for i in range(t):
+        s = np.dot(s, P)
+
+    return s
