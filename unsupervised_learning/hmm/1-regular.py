@@ -26,7 +26,7 @@ def regular(P):
 
     if len(steady_state_i) != 1:
         return None
-    
+
     steady_state_v = np.real(eigvecs[:, steady_state_i]).T
 
     steady_state_v /= np.sum(steady_state_v)
