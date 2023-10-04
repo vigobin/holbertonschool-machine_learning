@@ -31,3 +31,26 @@ def viterbi(Observation, Emission, Transition, Initial):
 
     if T <= 0 or N <= 0 or M <= 0:
         return None, None
+
+    path = [0] * T
+    V = np.zeros((N, T))
+
+    V[:, 0] = np.log(Initial.squeeze()) + np.log(Emission[:, Observation[0]])
+
+    backtrace = np.zeros((N, T - 1), dtype=int)
+
+    for t in range(1, T):
+        for i in range(N):
+            transition_scores = V[:, t - 1] + np.log(Transition[:, i])
+            max_prev_state = np.argmax(transition_scores)
+            V[i, t] = transition_scores[max_prev_state] = np.log(
+                Emission[i, Observation[t]])
+            backtrace[i, t - 1] = max_prev_state
+
+    best_last_state = np.argmax(V[:, T - 1])
+    path[T - 1] = best_last_state
+    for t in range(T - 2, -1, -1):
+        path[t] = backtrace[path[t + 1], t]
+
+    P = np.exp(V[best_last_state, T - 1])
+    return path, P
