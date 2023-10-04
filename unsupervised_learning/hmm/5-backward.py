@@ -26,3 +26,21 @@ def backward(Observation, Emission, Transition, Initial):
             path probabilities.
         B[i, j] is the probability of generating the future observations
             from hidden state i at time j."""
+    T = len(Observation)
+    N, M = Emission.shape
+
+    if T <= 0 or N <= 0 or M <= 0:
+        return None, None
+
+    B = np.zeros((N, T))
+
+    B[:, 0] = Initial.squeeze() * Emission[:, Observation[0]]
+
+    for t in range(1, T):
+        for i in range(N):
+            sum_term = np.sum(B[:, t - 1] * Transition[:, i])
+            B[i, t] = Emission[i, Observation[t]] * sum_term
+
+    P = np.sum(B[:, T - 1])
+
+    return P, B
