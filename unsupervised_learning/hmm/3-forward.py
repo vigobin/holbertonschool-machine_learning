@@ -26,3 +26,21 @@ def forward(Observation, Emission, Transition, Initial):
         forward path probabilities.
     F[i, j] is the probability of being in hidden state i at time j
         given the previous observations."""
+    T = len(Observation)
+    N, M = Emission.shape
+
+    if T <= 0 or N <= 0 or M <= 0:
+        return None, None
+
+    F = np.zeros((N, T))
+
+    F[:, 0] = Initial.squeeze() * Emission[:, Observation[0]]
+
+    for t in range(1, T):
+        for i in range(N):
+            sum_term = np.sum(F[:, t - 1] * Transition[:, i])
+            F[i, t] = Emission[i, Observation[t]] * sum_term
+
+    P = np.sum(F[:, T - 1])
+
+    return P, F
