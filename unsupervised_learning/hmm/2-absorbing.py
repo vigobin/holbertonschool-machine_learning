@@ -19,17 +19,18 @@ def absorbing(P):
     if P.shape != (n, n):
         return False
 
-    if np.all(np.diag(P) == 1):
-        return True
-
-    Q = P[:-n, :-n]
-    if Q.size == 0:
+    if not np.any(np.diag(P) == 1):
         return False
 
-    identity = np.eye(Q.shape[0])
-    N = np.linalg.inv(identity - Q)
+    # Q = P[:-n, :-n]
+    # if Q.size == 0:
+    #     return False
 
-    if not np.all(np.isfinite(N)):
-        return False
+    # identity = np.eye(Q.shape[0])
+    # N = np.linalg.inv(identity - Q)
 
-    return np.all(np.all(np.isclose(N[0], 0) | np.isfinite(N)))
+    # if not np.all(np.isfinite(N)):
+    #     return False
+
+    # return np.all(np.all(np.isclose(N[0], 0) | np.isfinite(N)))
+    return True
