@@ -22,15 +22,4 @@ def absorbing(P):
     if not np.any(np.diag(P) == 1):
         return False
 
-    # Q = P[:-n, :-n]
-    # if Q.size == 0:
-    #     return False
-
-    # identity = np.eye(Q.shape[0])
-    # N = np.linalg.inv(identity - Q)
-
-    # if not np.all(np.isfinite(N)):
-    #     return False
-
-    # return np.all(np.all(np.isclose(N[0], 0) | np.isfinite(N)))
     return True
