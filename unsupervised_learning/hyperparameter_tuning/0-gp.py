@@ -37,6 +37,7 @@ class GaussianProcess:
         for i in range(m):
             for j in range(n):
                 diff = X1[i] - X2[j]
-                K[i, j] = self.sigma_f ** 2 * np.exp(-0.5)
+                K[i, j] = self.sigma_f ** 2 * np.exp(
+                    -0.5 * (diff / self.l) ** 2)
 
         return K
