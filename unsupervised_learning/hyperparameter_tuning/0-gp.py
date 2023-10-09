@@ -18,10 +18,16 @@ class GaussianProcess:
     Sets the public instance attributes X, Y, l, and sigma_f corresponding
         to the respective constructor inputs.
     Sets the public instance attribute K, representing the current covariance
-        kernel matrix for the Gaussian process.
-    Public instance method def kernel(self, X1, X2): that calculates the
-        covariance kernel matrix between two matrices:
+        kernel matrix for the Gaussian process."""
+        self.X = X_init
+        self.Y = Y_init
+        self.l = l
+        self.sigma_f = sigma_f
+        self.K - self.kernel(X_init, Y_init)
+
+    def kernel(self, X1, X2):
+        """calculates the covariance kernel matrix between two matrices:
     X1 is a numpy.ndarray of shape (m, 1).
     X2 is a numpy.ndarray of shape (n, 1).
     the kernel should use the Radial Basis Function (RBF).
-    Returns: the covariance kernel matrix as a numpy.ndarray of shape (m, n)"""
+    Returns: the covariance kernel matrix as a numpy.ndarray of shape (m, n)""" 
