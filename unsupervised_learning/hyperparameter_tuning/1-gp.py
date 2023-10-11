@@ -59,7 +59,7 @@ class GaussianProcess:
 
         K_inv = np.linalg.inv(K_XX)
 
-        mu_s = np.dot(K_Xs.T, np.dot(K_inv, self.Y))
+        mu_s = np.dot(K_Xs.T, np.dot(K_inv, self.Y)).flatten()
         sigma_s = np.diag(K_ss - np.dot(np.dot(K_Xs.T, K_inv), K_Xs))
 
         return mu_s, sigma_s
