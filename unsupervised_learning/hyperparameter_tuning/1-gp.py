@@ -53,7 +53,7 @@ class GaussianProcess:
                     each point in X_s, respectively.
                 sigma is a numpy.ndarray of shape (s,) containing the variance
                     for each point in X_s, respectively."""
-        K_XX = self.kernel(self.X, self.X)
+        K_XX = self.K
         K_Xs = self.kernel(self.X, X_s)
         K_ss = self.kernel(X_s, X_s)
 
