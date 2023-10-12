@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""nitialize Bayesian Optimization"""
+"""Initialize Bayesian Optimization"""
 
 import numpy as np
 GP = __import__('2-gp').GaussianProcess
