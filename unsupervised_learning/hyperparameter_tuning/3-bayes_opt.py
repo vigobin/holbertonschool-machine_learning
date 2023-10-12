@@ -2,6 +2,7 @@
 """nitialize Bayesian Optimization"""
 
 import numpy as np
+GP = __import__('2-gp').GaussianProcess
 
 
 class BayesianOptimization:
@@ -31,3 +32,8 @@ class BayesianOptimization:
                 acquisition sample points, evenly spaced between min and max.
             xsi: the exploration-exploitation factor
             minimize: a bool for minimization versus maximization."""
+        self.f = f
+        self.gp = GP(X_init, Y_init, l, sigma_f)
+        self.X_s = np.linspace(bounds[0], bounds[1], ac_samples).reshape(-1, 1)
+        self.xsi = xsi
+        self.minimize = minimize
