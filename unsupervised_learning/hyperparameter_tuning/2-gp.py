@@ -71,3 +71,6 @@ class GaussianProcess:
             Y_new is a numpy.ndarray of shape (1,) that represents the
                 new sample function value.
             Updates the public instance attributes X, Y, and K."""
+        self.X = np.vstack((self.X, X_new))
+        self.Y = np.vstack((self.Y, Y_new))
+        self.K = self.kernel(self.X, self.X)
