@@ -51,11 +51,11 @@ class BayesianOptimization:
         sigma = sigma.reshape(-1, 1)
 
         if self.minimize:
-            mu_sample_opt = np.min(self.gp.Y)
+            mu_sample_opt = np.min(self.gp.predict(self.gp.X))
         else:
-            mu_sample_opt = np.max(self.gp.Y)
+            mu_sample_opt = np.max(self.gp.predict(self.gp.X))
 
-        imp = mu - mu_sample_opt - self.xsi
+        imp = mu_sample_opt - mu - self.xsi
         Z = imp / sigma
 
         EI = imp * norm.cdf(Z) + sigma * norm.pdf(Z)
