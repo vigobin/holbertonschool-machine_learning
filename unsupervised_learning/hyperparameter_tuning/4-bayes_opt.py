@@ -2,6 +2,7 @@
 """Bayesian Optimization - Acquisition"""
 
 import numpy as np
+from scipy.stats import norm
 GP = __import__('2-gp').GaussianProcess
 
 
@@ -46,3 +47,18 @@ class BayesianOptimization:
             next best sample point.
         EI is a numpy.ndarray of shape (ac_samples,) containing the
             expected improvement of each potential sample."""
+        mu, sigma = self.gp.predict(self.X_s)
+        sigma = sigma.reshape(-1, 1)
+
+        if self.minimize:
+            mu_sample_opt = np.min(self.gp.Y)
+        else:
+            mu_sample_opt = np.max(self.gp.Y)
+
+        imp = mu - mu_sample_opt - self.xsi
+        Z = imp / sigma
+
+        EI = imp * norm.cdf(Z) + sigma * norm.pdf(Z)
+        X_next = self.X_s[np.argmax(EI)]
+
+        return X_next, EI
