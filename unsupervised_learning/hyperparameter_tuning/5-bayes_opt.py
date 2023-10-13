@@ -89,7 +89,7 @@ class BayesianOptimization:
                 X_opt, Y_opt = X_next, Y_new
 
             self.gp.update(X_next, Y_new)
-        
+
         # slice the index before last of X to satisfy the checker
         self.gp.X = self.gp.X[:-1]
 
