@@ -48,7 +48,7 @@ class BayesianOptimization:
         EI is a numpy.ndarray of shape (ac_samples,) containing the
             expected improvement of each potential sample."""
         mu, sigma = self.gp.predict(self.X_s)
-        sigma = sigma.reshape(-1, 1)
+        # sigma = sigma.reshape(-1, 1)
 
         if self.minimize:
             mu_sample_opt = np.min(self.gp.predict(self.gp.X))
