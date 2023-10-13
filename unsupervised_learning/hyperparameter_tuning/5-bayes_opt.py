@@ -71,4 +71,23 @@ class BayesianOptimization:
         X_opt is a numpy.ndarray of shape (1,) representing the optimal point.
         Y_opt is a numpy.ndarray of shape (1,) representing the
             optimal function value."""
-        
+        X_opt = None
+        Y_opt = None
+        sampled_points = set()
+
+        for _ in range(iterations):
+            X_next, EI = self.acquisition()
+
+            X_next_str = str(X_next)
+            if X_next_str in sampled_points:
+                break
+
+            Y_new = self.f(X_next)
+            sampled_points.add(X_next_str)
+
+            if Y_opt is None or Y_new < Y_opt:
+                X_opt, Y_opt = X_next, Y_new
+
+            self.gp.update(X_next, Y_new)
+
+        return X_opt, Y_opt
