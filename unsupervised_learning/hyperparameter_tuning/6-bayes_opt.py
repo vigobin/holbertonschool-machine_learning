@@ -48,8 +48,43 @@ def optimize_Gp(hyperparameters):
                   metrics=['accuracy'])
 
     checkpoint = ModelCheckpoint(
-        f"model_lr_{learning_rate}_units_{num_units}_dropout_{
-            dropout_rate}_l2_{l2_weight}_batch_{batch}.h5",
+        "model_lr_{}_units_{}_dropout_{}_l2_{}_batch_{}.h5".format(
+            learning_rate, num_units, dropout_rate, l2_weight, batch
+        ),
         monitor='val_accuracy', save_best_only=True, mode='max')
+    early_stopping = EarlyStopping(monitor='val_accuracy', patience=10,
+                                   mode='max')
 
-    
+    history = model.fit(X_train, Y_train, validation_data=(X_val, Y_val),
+                        batch_size=batch, epochs=100,
+                        callbacks=[checkpoint, early_stopping], verbose=0)
+
+    val_acc = max(history.history['val_accuracy'])
+    return -val_acc  # Minimize the negative validation accuracy
+
+# Define the hyperparameter space for optimization
+
+
+space = [
+    {'name': 'learning_rate', 'type': 'continuous', 'domain': (0.0001, 0.1)},
+    {'name': 'num_units', 'type': 'discrete', 'domain': (32, 64, 128)},
+    {'name': 'dropout_rate', 'type': 'continuous', 'domain': (0.0, 0.5)},
+    {'name': 'l2_weight', 'type': 'continuous', 'domain': (1e-6, 0.1)},
+    {'name': 'batch_size', 'type': 'discrete', 'domain': (16, 32, 64)}
+]
+
+# Initialize the Bayesian optimization
+optimizer = GPyOpt.methods.BayesianOptimization(f=optimize_Gp, domain=space)
+
+# Run Bayesian optimization for a maximum of 30 iterations
+optimizer.run_optimization(max_iter=30)
+
+# Save a report of the optimization
+with open('bayes_opt.txt', 'w') as report_file:
+    report_file.write(str(optimizer.X))
+    report_file.write('\n')
+    report_file.write(str(optimizer.Y))
+
+# Plot the convergence
+optimizer.plot_convergence()
+plt.show()
