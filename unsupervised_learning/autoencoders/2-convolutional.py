@@ -54,10 +54,11 @@ def autoencoder(input_dims, filters, latent_dims):
     decoder = keras.Model(decoder_inputs, decoder_outputs, name="decoder")
 
     # Autoencoder model
-    autoencoder_inputs = keras.Input(shape=(input_dims,))
+    autoencoder_inputs = keras.Input(shape=input_dims)
     encoder_output = encoder(autoencoder_inputs)
     decoder_output = decoder(encoder_output)
-    auto = keras.Model(autoencoder_inputs, decoder_output, name="autoencoder")
+    auto = keras.Model(
+        autoencoder_inputs, decoder_output, name="convolutional_autoencoder")
 
     auto.compile(optimizer='adam', loss='binary_crossentropy')
 
