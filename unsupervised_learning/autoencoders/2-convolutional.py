@@ -27,38 +27,35 @@ def autoencoder(input_dims, filters, latent_dims):
     The autoencoder model should be compiled using adam optimization and
         binary cross-entropy loss."""
     # Encoder model
-    encoder_inputs = keras.Input(shape=input_dims)
+    encoder_inputs = keras.layers.Input(shape=input_dims)
     x = encoder_inputs
-    for num_filters in filters:
-        x = keras.layers.Conv2D(num_filters, (3, 3),
+    for num_filters in range(len(filters)):
+        x = keras.layers.Conv2D(filters[num_filters], (3, 3),
                                 activation='relu', padding='same')(x)
-        x = keras.layers.MaxPooling2d((2, 2))(x)
+        x = keras.layers.MaxPooling2D((2, 2), padding='same')(x)
 
-    encoder = keras.Model(encoder_inputs, x, name="encoder")
+    encoder = keras.Model(encoder_inputs, x)
 
     # Decoder model
-    decoder_inputs = keras.Input(shape=latent_dims)
-    x = decoder_inputs
-    for num_filters in reversed(filters[:-1]):
-        x = keras.layers.Conv2D(num_filters, (3, 3),
-                                activation='relu', padding='same')(x)
-        x = keras.layers.UpSampling2D((2, 2))(x)
+    decoder_inputs = keras.layers.Input(shape=latent_dims)
+    y = decoder_inputs
+    padding = 'same'
+    for num_filters in range(len(filters) - 1, -1, -1):
+        if num_filters == 0:
+            padding = 'valid'
 
-    x = keras.layers.Conv2D(
-        num_filters[-1], (3, 3), activation='relu', padding='valid')(x)
-    x = keras.layers.UpSampling2D((2, 2))(x)
+        y = keras.layers.Conv2D(filters[num_filters], (3, 3),
+                                activation='relu', padding=padding)(y)
+        y = keras.layers.UpSampling2D((2, 2))(y)
 
     decoder_outputs = keras.layers.Conv2D(
-        input_dims[-1], (3, 3), activation='sigmoid', padding='same')(x)
+        input_dims[-1], (3, 3), activation='sigmoid', padding='same')(y)
 
-    decoder = keras.Model(decoder_inputs, decoder_outputs, name="decoder")
+    decoder = keras.Model(decoder_inputs, decoder_outputs)
 
     # Autoencoder model
-    autoencoder_inputs = keras.Input(shape=input_dims)
-    encoder_output = encoder(autoencoder_inputs)
-    decoder_output = decoder(encoder_output)
     auto = keras.Model(
-        autoencoder_inputs, decoder_output, name="convolutional_autoencoder")
+        encoder_inputs, decoder(encoder(encoder_inputs)))
 
     auto.compile(optimizer='adam', loss='binary_crossentropy')
 
