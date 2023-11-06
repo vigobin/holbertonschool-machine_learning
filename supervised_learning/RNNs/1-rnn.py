@@ -6,7 +6,8 @@ import numpy as np
 
 def rnn(rnn_cell, X, h_0):
     """Performs forward propagation for a simple RNN.
-    rnn_cell is an instance of RNNCell that will be used for the forward propagation
+    rnn_cell is an instance of RNNCell that will be used for the
+        forward propagation.
     X is the data to be used, given as a numpy.ndarray of shape (t, m, i).
     t is the maximum number of time steps.
     m is the batch size.
