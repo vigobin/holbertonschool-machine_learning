@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Simple RNN"""
 
-import numbers as np
+import numpy as np
 
 
 def rnn(rnn_cell, X, h_0):
