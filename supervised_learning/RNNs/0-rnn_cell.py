@@ -17,7 +17,7 @@ class RNNCell:
         self.Wh = np.random.normal(size=(i + h, h))
         self.Wy = np.random.normal(size=(h, o))
         self.bh = np.zeros(shape=(1, h))
-        self.by = np.zeros(shape=(1, 0))
+        self.by = np.zeros(shape=(1, o))
 
     def forward(self, h_prev, x_t):
         """Performs forward propagation for one time step:
