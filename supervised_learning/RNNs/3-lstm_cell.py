@@ -27,12 +27,12 @@ class LSTMCell:
         self.Wu = np.random.normal(size=(i + h, h))
         self.Wc = np.random.normal(size=(i + h, h))
         self.Wo = np.random.normal(size=(i + h, h))
-        self.Wy = np.random.normal(size=(i + h, h))
+        self.Wy = np.random.normal(size=(i + h, o))
         self.bf = np.zeros((1, h))
         self.bu = np.zeros((1, h))
         self.bc = np.zeros((1, h))
         self.bo = np.zeros((1, h))
-        self.by = np.zeros((1, h))
+        self.by = np.zeros((1, o))
 
     def softmax(self, x):
         """Softmax function"""
