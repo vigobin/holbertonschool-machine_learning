@@ -27,7 +27,7 @@ class LSTMCell:
         self.Wu = np.random.normal(size=(i + h, h))
         self.Wc = np.random.normal(size=(i + h, h))
         self.Wo = np.random.normal(size=(i + h, h))
-        self.Wy = np.random.normal(size=(i + h, o))
+        self.Wy = np.random.normal(size=(h, o))
         self.bf = np.zeros((1, h))
         self.bu = np.zeros((1, h))
         self.bc = np.zeros((1, h))
@@ -57,9 +57,9 @@ class LSTMCell:
         forget_gate = np.dot(input, self.Wf) + self.bf
         update = np.dot(input, self.Wu) + self.bu
         cell_state = np.tanh(np.dot(input, self.Wc) + self.bc)
-        cell_next = forget_gate * c_prev + update * cell_state
+        c_next = forget_gate * c_prev + update * cell_state
         output_gate = np.dot(input, self.Wo) + self.bo
-        h_next = output_gate * np.tanh(cell_next)
+        h_next = output_gate * np.tanh(c_next)
         y = self.softmax(np.dot(h_next, self.Wy) + self.by)
-        
-        return h_next, cell_next, y
+
+        return h_next, c_next, y
