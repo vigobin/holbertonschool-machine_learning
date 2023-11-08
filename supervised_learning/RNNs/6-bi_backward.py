@@ -52,5 +52,5 @@ class BidirectionalCell:
             Returns: h_pev, the previous hidden state."""
         input = np.concatenate((h_next, x_t), axis=1)
         h_prev = np.tanh(np.dot(input, self.Whb) + self.bhb)
-        
+
         return h_prev
