@@ -24,13 +24,13 @@ def deep_rnn(rnn_cells, X, h_0):
     H = np.zeros((l, t, m, h))
     Y = []
 
-    for i in range(l):
-        h_prev = h_0[j]
-        for j in range(t):
-            x_t = X[j] if j == 0 else H[i-1, j]
-            h_next, _, y = rnn_cells[j].forward(h_prev, h_prev, x_t)
-            H[i, j] = h_next
+    for step in range(l):
+        h_prev = h_0[step]
+        for layer in range(t):
+            x_t = X[layer] if step == 0 else H[step-1, layer]
+            h_next, _, y = rnn_cells[step].forward(h_prev, h_prev, x_t)
+            H[step, layer] = h_next
             h_prev = h_next
         Y.append(y)
-    
+
     return H, np.array(Y)
