@@ -64,5 +64,10 @@ class BidirectionalCell:
             m is the batch size for the data.
             h is the dimensionality of the hidden states.
             Returns: Y, the outputs."""
-        Y = np.dot(H, self.Wy) + self.by
+        Y = self.softmax(np.dot(H, self.Wy) + self.by)
         return Y
+
+    def softmax(self, x):
+        """softmax function"""
+        output = np.exp(x - np.max(x))
+        return output / output.sum(axis=2, keepdims=True)
