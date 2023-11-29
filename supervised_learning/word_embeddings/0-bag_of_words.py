@@ -23,4 +23,4 @@ def bag_of_words(sentences, vocab=None):
 
     features = vectorizer.get_feature_names_out()
 
-    return embeddings.toarray(), features
+    return np.array(embeddings), features
