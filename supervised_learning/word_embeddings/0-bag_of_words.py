@@ -2,6 +2,7 @@
 """Bag Of Words"""
 
 from sklearn.feature_extraction.text import CountVectorizer
+import numpy as np
 
 
 def bag_of_words(sentences, vocab=None):
@@ -18,11 +19,8 @@ def bag_of_words(sentences, vocab=None):
 
     vectorizer = CountVectorizer(vocabulary=vocab)
 
-    embeddings = vectorizer.fit_transform(sentences).toarray()
+    embeddings = vectorizer.fit_transform(sentences)
 
-    if vocab is None:
-        features = vectorizer.get_feature_names_out()
-    else:
-        features = vocab
+    features = vectorizer.get_feature_names_out()
 
-    return embeddings, features
+    return embeddings.toarray(), features
