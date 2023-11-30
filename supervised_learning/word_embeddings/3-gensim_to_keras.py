@@ -17,6 +17,9 @@ def gensim_to_keras(model):
     for word, i in model.wv.key_to_index.items():
         weight_matrix[i] = model.wv[word]
 
-    embedding_layer = Embedding(input_dim=vocab_size, output_dim=vector_size, weights=[weight_matrix], trainable=True)
+    embedding_layer = Embedding(input_dim=vocab_size,
+                                output_dim=vector_size,
+                                weights=[weight_matrix],
+                                trainable=True)
 
     return embedding_layer
