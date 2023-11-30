@@ -23,7 +23,8 @@ def fasttext_model(sentences, size=100, min_count=5,
         Returns: the trained model."""
     sg = 0 if cbow else 1
 
-    model = FastText(sentences, size=size, min_count=min_count, window=window, 
-                     negative=negative, sg=sg, iter=iterations, seed=seed, workers=workers)
+    model = FastText(sentences, size=size, min_count=min_count, window=window,
+                     negative=negative, sg=sg, iter=iterations,
+                     seed=seed, workers=workers)
 
     return model
