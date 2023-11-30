@@ -16,7 +16,8 @@ def tf_idf(sentences, vocab=None):
         f is the number of features analyzed.
         features is a list of the features used for embeddings."""
     if vocab is None:
-        vocab = set(word for sentence in sentences for word in sentence.split())
+        vocab = set(
+            word for sentence in sentences for word in sentence.split())
 
     text_data = [' '.join(sentence.split()) for sentence in sentences]
 
