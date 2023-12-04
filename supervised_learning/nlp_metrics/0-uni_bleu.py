@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Unigram BLEU score"""
 
+import numpy as np
+
 
 def uni_bleu(references, sentence):
     """Calculates the unigram BLEU score for a sentence:
@@ -22,4 +24,11 @@ def uni_bleu(references, sentence):
     bleu_score = sum(clipped_counts.values()) / max(sum(
         sentence_counts.values()), 1)
 
-    return bleu_score
+    closest_ref_len = min(len(ref) for ref in references)
+
+    if len(sentence) > closest_ref_len:
+        brevity_penalty = 1
+    else:
+        brevity_penalty = np.exp(1 - closest_ref_len / len(sentence))
+
+    return brevity_penalty * bleu_score
