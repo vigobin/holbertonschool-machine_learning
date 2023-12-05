@@ -11,13 +11,16 @@ def ngram_bleu(references, sentence, n):
         sentence is a list containing the model proposed sentence.
         n is the size of the n-gram to use for evaluation.
         Returns: the n-gram BLEU score."""
-    sentence_counts = {tuple(sentence[i:i+n]) for i in range(
-        len(sentence) - n+1)}
+    sentence_ngrams = [tuple(sentence[i:i+n]) for i in range(
+        len(sentence) - n+1)]
+    sentence_counts = {
+        word: sentence_ngrams.count(word) for word in sentence_ngrams}
     max_counts = {}
 
     for ref in references:
-        ref_counts = {tuple(ref[i:i+n]) for i in range(
-            len(ref) - n+1)}
+        ref_ngrams = [tuple(ref[i:i+n]) for i in range(
+            len(ref) - n+1)]
+        ref_counts = {word: ref_ngrams.count(word) for word in ref_ngrams}
         for word in ref_counts:
             max_counts[word] = max(max_counts.get(word, 0), ref_counts[word])
 
