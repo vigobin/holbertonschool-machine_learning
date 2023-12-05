@@ -12,24 +12,31 @@ def cumulative_bleu(references, sentence, n):
         n is the size of the largest n-gram to use for evaluation.
         All n-gram scores should be weighted evenly.
         Returns: the cumulative n-gram BLEU score."""
-    sentence_ngrams = [tuple(sentence[i:i+n]) for i in range(
-        len(sentence) - n+1)]
-    sentence_counts = {
-        word: sentence_ngrams.count(word) for word in sentence_ngrams}
-    max_counts = {}
+    weights = [1.0/n] * n
+    bleu_scores = []
 
-    for ref in references:
-        ref_ngrams = [tuple(ref[i:i+n]) for i in range(
-            len(ref) - n+1)]
-        ref_counts = {word: ref_ngrams.count(word) for word in ref_ngrams}
-        for word in ref_counts:
-            max_counts[word] = max(max_counts.get(word, 0), ref_counts[word])
+    for j in range(1, 1+n):
 
-    clipped_counts = {word: min(count, max_counts.get(word, 0)) for word,
-                      count in sentence_counts.items()}
+        sentence_ngrams = [tuple(sentence[i:i+j]) for i in range(
+            len(sentence) - j+1)]
+        sentence_counts = {
+            word: sentence_ngrams.count(word) for word in sentence_ngrams}
+        max_counts = {}
 
-    bleu_score = sum(clipped_counts.values()) / max(sum(
-        sentence_counts.values()), 1)
+        for ref in references:
+            ref_ngrams = [tuple(ref[i:i+j]) for i in range(
+                len(ref) - j+1)]
+            ref_counts = {word: ref_ngrams.count(word) for word in ref_ngrams}
+            for word in ref_counts:
+                max_counts[word] = max(
+                    max_counts.get(word, 0), ref_counts[word])
+
+        clipped_counts = {word: min(count, max_counts.get(word, 0)) for word,
+                          count in sentence_counts.items()}
+
+        bleu_score = sum(clipped_counts.values()) / max(sum(
+            sentence_counts.values()), 1)
+        bleu_scores.append(bleu_score)
 
     closest_ref_len = min(len(ref) for ref in references)
 
@@ -38,4 +45,7 @@ def cumulative_bleu(references, sentence, n):
     else:
         brevity_penalty = np.exp(1 - closest_ref_len / len(sentence))
 
-    return brevity_penalty * bleu_score
+    cumulative_bleu_score = brevity_penalty * np.exp(
+        sum(w*np.log(s) for w, s in zip(weights, bleu_scores)))
+
+    return cumulative_bleu_score
