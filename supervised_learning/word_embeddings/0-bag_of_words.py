@@ -18,8 +18,8 @@ def bag_of_words(sentences, vocab=None):
     sentences = [sentence.lower() for sentence in sentences]
 
     if vocab is None:
-        vocab = set(
-            word for sentence in sentences for word in sentence.split())
+        vocab = sorted(set(
+            word for sentence in sentences for word in sentence.split()))
 
     embeddings = np.zeros((len(sentences), len(vocab)))
 
