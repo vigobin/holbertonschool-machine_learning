@@ -16,11 +16,17 @@ def bag_of_words(sentences, vocab=None):
             s is the number of sentences in sentences.
             f is the number of features analyzed.
             features is a list of the features used for embeddings."""
+    sentences = [sentence.lower() for sentence in sentences]
 
-    vectorizer = CountVectorizer(vocabulary=vocab)
+    if vocab is None:
+        vocab = set(
+            word for sentence in sentences for word in sentence.split())
 
-    embeddings = vectorizer.fit_transform(sentences).toarray()
+    embeddings = np.zeros((len(sentences), len(vocab)))
 
-    features = vectorizer.get_feature_names_out()
+    for i, sentence in enumerate(sentences):
+        words = sentence.split()
+        for j, word in enumerate(vocab):
+            embeddings[i, j] = words.count(word)
 
-    return embeddings, features
+    return embeddings, list(vocab)
