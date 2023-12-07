@@ -22,6 +22,8 @@ def bag_of_words(sentences, vocab=None):
     if vocab is None:
         vocab = sorted(set(
             word for sentence in sentences for word in sentence.split()))
+        vocab = [word for word in vocab if not (
+            word.endswith('s') and word[:-1] in vocab)]
 
     embeddings = np.zeros((len(sentences), len(vocab)), dtype=int)
 
