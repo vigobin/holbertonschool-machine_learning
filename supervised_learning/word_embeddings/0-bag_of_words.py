@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Bag Of Words"""
 
-from sklearn.feature_extraction.text import CountVectorizer
 import numpy as np
 
 
