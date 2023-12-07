@@ -2,6 +2,7 @@
 """Bag Of Words"""
 
 import numpy as np
+import string
 
 
 def bag_of_words(sentences, vocab=None):
@@ -15,7 +16,8 @@ def bag_of_words(sentences, vocab=None):
             s is the number of sentences in sentences.
             f is the number of features analyzed.
             features is a list of the features used for embeddings."""
-    sentences = [sentence.lower() for sentence in sentences]
+    sentences = [sentence.lower().translate(str.maketrans(
+        '', '', string.punctuation)) for sentence in sentences]
 
     if vocab is None:
         vocab = sorted(set(
