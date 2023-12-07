@@ -22,6 +22,8 @@ def bag_of_words(sentences, vocab=None):
     if vocab is None:
         vocab = sorted(set(
             word for sentence in sentences for word in sentence.split()))
+        # Only include the singular form of a word if both singular
+        # and plural forms are present
         vocab = [word for word in vocab if not (
             word.endswith('s') and word[:-1] in vocab)]
 
@@ -30,6 +32,9 @@ def bag_of_words(sentences, vocab=None):
     for i, sentence in enumerate(sentences):
         words = sentence.split()
         for j, word in enumerate(vocab):
-            embeddings[i, j] = words.count(word)
+            count = words.count(word)
+            if word+'s' in words:
+                count += words.count(word+'s')
+            embeddings[i, j] = count
 
-    return embeddings, list(vocab)
+    return embeddings, vocab
