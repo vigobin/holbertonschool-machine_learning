@@ -39,7 +39,8 @@ def question_answer(question, reference):
     start_index = tf.argmax(start_logits, axis=-1).numpy()
     end_index = tf.argmax(end_logits, axis=-1).numpy() + 1
 
-    answer_tokens = tokenizer.convert_ids_to_tokens(input_ids[0][start_index:end_index])
+    answer_tokens = tokenizer.convert_ids_to_tokens(
+        input_ids[0][start_index:end_index])
     answer = tokenizer.convert_tokens_to_string(answer_tokens)
 
     if answer == '[CLS]' or answer == '[SEP]':
