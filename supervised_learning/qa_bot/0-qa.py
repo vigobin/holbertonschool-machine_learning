@@ -19,3 +19,30 @@ def question_answer(question, reference):
         Your function should use the pre-trained BertTokenizer,
             bert-large-uncased-whole-word-masking-finetuned-squad,
             from the transformers library."""
+    model = hub.load('https://tfhub.dev/see--/bert-uncased-tf2-qa/1')
+    tokenizer = BertTokenizer.from_pretrained(
+        'bert-large-uncased-whole-word-masking-finetuned-squad')
+
+    input_ids = tokenizer.encode(question, reference)
+    input_mask = [1] * len(input_ids)
+    input_type_ids = [0 if i < input_ids.index(102) else 1
+                      for i in range(len(input_ids))]
+
+    input_ids = tf.constant([input_ids])
+    input_mask = tf.constant([input_mask])
+    input_type_ids = tf.constant([input_type_ids])
+
+    outputs = model([input_ids, input_mask, input_type_ids])
+    start_logits = outputs[0][0]
+    end_logits = outputs[1][0]
+
+    start_index = tf.argmax(start_logits, axis=-1).numpy()
+    end_index = tf.argmax(end_logits, axis=-1).numpy() + 1
+
+    answer_tokens = tokenizer.convert_ids_to_tokens(input_ids[0][start_index:end_index])
+    answer = tokenizer.convert_tokens_to_string(answer_tokens)
+
+    if answer == '[CLS]' or answer == '[SEP]':
+        return None
+
+    return answer
