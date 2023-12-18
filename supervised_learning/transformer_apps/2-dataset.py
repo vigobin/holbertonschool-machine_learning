@@ -2,6 +2,7 @@
 """Dataset class"""
 
 import tensorflow_datasets as tfds
+import tensorflow.compat.v2 as tf
 
 
 class Dataset:
@@ -72,4 +73,7 @@ class Dataset:
     def tf_encode(self, pt, en):
         """Acts as a tensorflow wrapper for the encode instance method.
             Set the shape of the pt and en return tensors."""
-    
+        pt, en = tf.py_function(self.encode, [pt, en], [tf.int64, tf.int64])
+        pt.set_shape([None])
+        en.set_shape([None])
+        return pt, en
