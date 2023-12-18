@@ -2,7 +2,6 @@
 """Dataset class"""
 
 import tensorflow_datasets as tfds
-import numpy as np
 
 
 class Dataset:
@@ -10,9 +9,9 @@ class Dataset:
     def __init__(self):
         """Creates the instance attributes:
             data_train, which contains the ted_hrlr_translate/pt_to_en
-                tf.data.Dataset train split, loaded as_supervided.
+                tf.data.Dataset train split, loaded as_supervised.
             data_valid, which contains the ted_hrlr_translate/pt_to_en
-                tf.data.Dataset validate split, loaded as_supervided.
+                tf.data.Dataset validate split, loaded as_supervised.
             tokenizer_pt is the Portuguese tokenizer created from
                 the training set.
             tokenizer_en is the English tokenizer created from
@@ -26,6 +25,10 @@ class Dataset:
             self.data_train)
         self.tokenizer_pt, self.tokenizer_en = self.tokenize_dataset(
             self.data_train)
+
+        # For tf_encode, update  attributes by tokenizing the examples.
+        self.data_train = self.data_train.map(self.tf_encode)
+        self.data_valid = self.data_valid.map(self.tf_encode)
 
     def tokenize_dataset(self, data):
         """Creates sub-word tokenizers for our dataset:
@@ -64,8 +67,9 @@ class Dataset:
         en_tokens = [self.tokenizer_en.vocab_size] + en_tokens + \
             [self.tokenizer_en.vocab_size + 1]
 
-        return np.array(pt_tokens), np.array(en_tokens)
+        return pt_tokens, en_tokens
 
     def tf_encode(self, pt, en):
         """Acts as a tensorflow wrapper for the encode instance method.
             Set the shape of the pt and en return tensors."""
+    
