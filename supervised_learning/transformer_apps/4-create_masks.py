@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Create Masks"""
 
-import tensorflow_datasets as tfds
-import tensorflow.compat.v2 as tf
 
 def create_masks(inputs, target):
     """Creates all masks for training/validation:
@@ -23,3 +21,12 @@ def create_masks(inputs, target):
         decoder_mask is the tf.Tensor padding mask of shape
             (batch_size, 1, 1, seq_len_in) used in the 2nd attention
             block in the decoder."""
+    encoder_mask = 
+
+    decoder_mask = 
+
+    look_ahead_mask = create_look_ahead_mask(tf.shape(target)[1])
+    dec_target_padding_mask = create_padding_mask(target)
+    combined_mask = tf.maximum(dec_target_padding_mask, look_ahead_mask)
+
+    return encoder_mask, combined_mask, decoder_mask
