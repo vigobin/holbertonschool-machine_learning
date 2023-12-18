@@ -7,12 +7,15 @@ import tensorflow.compat.v2 as tf
 
 class Dataset:
     """Defines the Dataset class"""
-    def __init__(self):
+    def __init__(self, batch_size, max_len):
         """Creates the instance attributes:
             data_train, which contains the ted_hrlr_translate/pt_to_en
                 tf.data.Dataset train split, loaded as_supervised.
             data_valid, which contains the ted_hrlr_translate/pt_to_en
                 tf.data.Dataset validate split, loaded as_supervised.
+            batch_size is the batch size for training/validation.
+            max_len is the maximum number of tokens allowed per
+                example sentence.
             tokenizer_pt is the Portuguese tokenizer created from
                 the training set.
             tokenizer_en is the English tokenizer created from
@@ -30,6 +33,33 @@ class Dataset:
         # For tf_encode, update  attributes by tokenizing the examples.
         self.data_train = self.data_train.map(self.tf_encode)
         self.data_valid = self.data_valid.map(self.tf_encode)
+
+        """Update data_train attribute by performing the following actions:
+            filter out all examples that have either sentence with more
+                than max_len tokens.
+            cache the dataset to increase performance.
+            shuffle the entire dataset.
+            split the dataset into padded batches of size batch_size.
+            prefetch the dataset using tf.data.experimental.AUTOTUNE
+                to increase performance."""
+
+        self.data_train = self.data_train.filter(
+            lambda x, y: tf.logical_and(tf.size(x) <= max_len,
+                                        tf.size(y) <= max_len))
+        self.data_train = self.data_train.cache()
+        self.data_train = self.data_train.shuffle(
+            tf.data.experimental.cardinality(self.data_train).numpy())
+        self.data_train = self.data_train.padded_batch(batch_size)
+        self.data_train = self.data_train.prefetch(
+            tf.data.experimental.AUTOTUNE)
+
+        """Update the data_valid attribute by performing the following actions:
+            filter out all examples that have either sentence with more than
+                max_len tokens.
+            split the dataset into padded batches of size batch_size."""
+        self.data_valid = self.data_valid.filter(
+            lambda x, y: tf.logical_and(tf.size(x) <= max_len,
+                                        tf.size(y) <= max_len))
 
     def tokenize_dataset(self, data):
         """Creates sub-word tokenizers for our dataset:
