@@ -23,8 +23,8 @@ def answer_loop(reference):
 
         input_ids = tokenizer.encode(question, reference)
         input_mask = [1] * len(input_ids)
-        input_type_ids = [0 if i < input_ids.index(102) else 1
-                        for i in range(len(input_ids))]
+        input_type_ids = [0 if i < input_ids.index(
+            102) else 1for i in range(len(input_ids))]
 
         input_ids = tf.constant([input_ids])
         input_mask = tf.constant([input_mask])
