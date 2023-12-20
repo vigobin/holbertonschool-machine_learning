@@ -34,13 +34,13 @@ def question_answer(question, reference):
 
     outputs = model([input_ids, input_mask, input_type_ids])
     start_index = tf.argmax(outputs[0][0][1:]) + 1
-    end_index = tf.argmax(outputs[1][0][1:]) + 1
+    end_index = tf.argmax(outputs[1][0][1:]) + 2
 
     answer_tokens = tokenizer.convert_ids_to_tokens(
         input_ids[0][start_index:end_index])
     answer = tokenizer.convert_tokens_to_string(answer_tokens)
 
-    if answer == '[CLS]' or answer == '[SEP]':
+    if answer == '[CLS]':
         return None
 
     return answer
