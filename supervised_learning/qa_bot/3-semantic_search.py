@@ -19,10 +19,11 @@ def semantic_search(corpus_path, sentence):
 
     corpus_sentences = []
     for filename in os.listdir(corpus_path):
-        with open(os.path.join(
-                corpus_path, filename), 'r', encoding='utf-8') as file:
-            document_text = file.read()
-            corpus_sentences.append(document_text)
+        if filename.endswith('.md'):
+            with open(os.path.join(
+                    corpus_path, filename), 'r', encoding='utf-8') as file:
+                document_text = file.read()
+                corpus_sentences.append(document_text)
 
     corpus_embeddings = embed(corpus_sentences)
     query_embedding = embed([sentence])
